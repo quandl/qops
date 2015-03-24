@@ -1,6 +1,5 @@
 require 'thor'
 require 'aws-sdk'
-require 'byebug'
 require 'json'
 require 'yaml'
 require 'fileutils'
@@ -68,6 +67,7 @@ class Opsworks < Thor
     say("Released!", :green)
   end
 
+  option :cookbookdir, required: true
   desc 'update_custom_cookbooks', 'Update the stack!'
   def update_custom_cookbooks
     opsworks.update_stack(
