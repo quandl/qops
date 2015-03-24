@@ -3,6 +3,7 @@ require 'aws-sdk'
 require 'byebug'
 require 'json'
 require 'yaml'
+require 'fileutils'
 
 class Opsworks < Thor
   include Thor::Actions
@@ -13,7 +14,9 @@ class Opsworks < Thor
   desc 'testing', 'foo'
   def vendor
     Dir.chdir(cookbook_dir) do
-      remove_dir('vendor')
+      # must remove any zip files or else they will be included in vendor directory!
+      remove_zip_files
+      FileUtils.remove_dir('vendor')
       system("berks vendor vendor -e opsworks")
     end
   end
@@ -22,7 +25,7 @@ class Opsworks < Thor
   desc 'package', 'package the file'
   def package
     Dir.chdir(cookbook_dir) do
-      remove_file(artifact_name)
+      remove_zip_files
       system("zip -r #{artifact_name} vendor/*")
     end
   end
@@ -143,6 +146,10 @@ class Opsworks < Thor
 
   def vendor_dir
     File.join(cookbook_dir, 'vendor')
+  end
+
+  def remove_zip_files
+    FileUtils.rm Dir.glob("#{cookbook_name}*.zip")
   end
 
   def version
