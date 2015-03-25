@@ -15,7 +15,7 @@ class Opsworks < Thor
     Dir.chdir(cookbook_dir) do
       # must remove any zip files or else they will be included in vendor directory!
       remove_zip_files
-      FileUtils.remove_dir('vendor')
+      FileUtils.remove_dir('vendor') if File.directory?('vendor')
       system("berks vendor vendor -e opsworks")
     end
   end
