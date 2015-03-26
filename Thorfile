@@ -3,12 +3,14 @@ require 'aws-sdk'
 require 'json'
 require 'yaml'
 require 'fileutils'
+require 'byebug'
 
 class Opsworks < Thor
   include Thor::Actions
 
   S3_BUCKET = 'quandl-cookbooks'.freeze
 
+  option :environment, required: true
   option :cookbookdir, required: true
   desc 'testing', 'foo'
   def vendor
@@ -20,6 +22,7 @@ class Opsworks < Thor
     end
   end
 
+  option :environment, required: true
   option :cookbookdir, required: true
   desc 'package', 'package the file'
   def package
@@ -29,6 +32,7 @@ class Opsworks < Thor
     end
   end
 
+  option :environment, required: true
   option :cookbookdir, required: true
   desc 'upload the file', 'upload it'
   def upload
@@ -40,6 +44,7 @@ class Opsworks < Thor
       )
   end
 
+  option :environment, required: true
   option :cookbookdir, required: true
   desc 'update_custom_json', 'Do more stuff'
   def update_custom_json
@@ -60,6 +65,7 @@ class Opsworks < Thor
     say('Check your JSON for errors!', :red)
   end
 
+  option :environment, required: true
   option :cookbookdir, required: true
   desc 'release', 'foo'
   def release
@@ -67,6 +73,7 @@ class Opsworks < Thor
     say("Released!", :green)
   end
 
+  option :environment, required: true
   option :cookbookdir, required: true
   desc 'update_custom_cookbooks', 'Update the stack!'
   def update_custom_cookbooks
@@ -121,7 +128,9 @@ class Opsworks < Thor
   def config
     filename = File.join(cookbook_dir, 'config.yml')
     raise ArgumentError.new('config.yml does not exist') unless File.exist?(filename)
-    @config ||= YAML.load_file(filename)
+    @config ||= YAML.load(ERB.new(File.read(filename)).result)
+    raise ArgumentError.new("Environment '#{options[:environment]}' does not exist in config.yml") unless @config.key?(options[:environment])
+    @config[options[:environment]]
   end
 
   def access_key_id
@@ -153,7 +162,7 @@ class Opsworks < Thor
   end
 
   def version
-    ver = config['version'] || IO.read(File.join(cookbook_dir, 'VERSION')).strip
+    ver = config['version']
     raise ArgumentError.new('must specify a version!') unless ver
     ver
   end
