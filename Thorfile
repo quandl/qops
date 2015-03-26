@@ -162,7 +162,7 @@ class Opsworks < Thor
   end
 
   def version
-    ver = config['version']
+    ver = config['version'].strip
     raise ArgumentError.new('must specify a version!') unless ver
     ver
   end
