@@ -128,7 +128,9 @@ class Opsworks < Thor
   def config
     filename = File.join(cookbook_dir, 'config.yml')
     raise ArgumentError.new('config.yml does not exist') unless File.exist?(filename)
-    @config ||= YAML.load(ERB.new(File.read(filename)).result)
+    Dir.chdir(cookbook_dir) do
+      @config ||= YAML.load(ERB.new(File.read(filename)).result)
+    end
     raise ArgumentError.new("Environment '#{options[:environment]}' does not exist in config.yml") unless @config.key?(options[:environment])
     @config[options[:environment]]
   end
