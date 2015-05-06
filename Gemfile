@@ -1,6 +1,11 @@
 source 'https://rubygems.org'
 
-gem 'berkshelf'
-gem 'thor'
-gem 'aws-sdk'
-gem 'byebug'
+gemspec
+
+group :development do
+  gem 'rubocopter', '>= 0.1.6'
+end
+
+group :debug do
+  gem 'byebug'
+end
