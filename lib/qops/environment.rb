@@ -5,6 +5,10 @@ class Qops::Environment
 
   attr_reader :revision
 
+  def self.notifiers
+    @_notifiers ||= Quandl::Slack.autogenerate_notifiers
+  end
+
   def initialize
     puts "Reading 'config/#{file_name}.yml'"
 
