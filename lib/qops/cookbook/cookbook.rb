@@ -65,7 +65,7 @@ class Qops::Cookbook < Thor
         use_custom_cookbooks: true,
         custom_cookbooks_source: {
           type: 's3',
-          url: "https://s3.amazonaws.com/#{@_config.cookbook_s3_bucket}/#{remote_artifact_file}"
+          url: "https://s3.amazonaws.com/#{config.cookbook_s3_bucket}/#{remote_artifact_file}"
         })
       say('Cookbooks updated', :green)
     else
@@ -90,6 +90,8 @@ class Qops::Cookbook < Thor
     %w(cookbook_dir cookbook_s3_bucket cookbook_s3_path cookbook_name cookbook_version).each do |var|
       fail ArgumentError.new("Must specify a '#{var}' in the config") unless @_config.send(var)
     end
+
+    fail ArgumentError.new("Cannot find/do not have access to cookbook directory: #{@_config.cookbook_dir}")
 
     @_config
   end
