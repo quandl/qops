@@ -4,11 +4,11 @@ module Qops::DeployHelpers
   def config
     return @_config if @_config
 
-    fail "Invalid configure deploy_type detected: #{deploy_type}" unless [:staging, :production].include?(deploy_type)
-
     Quandl::Slack.autogenerate_notifiers
 
     @_config ||= Qops::Environment.new
+    fail "Invalid configure deploy_type detected: #{@_config.deploy_type}" unless [:staging, :production].include?(@_config.deploy_type)
+    @_config
   end
 
   def iterator(options)
