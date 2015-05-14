@@ -22,13 +22,14 @@ class Qops::Instance < Thor
       }
       puts 'Creating instance with params: ' + params.inspect
       instance_id = config.opsworks.create_instance(params).data.instance_id
+      creating_instance = true
     end
 
     instance_results = config.opsworks.describe_instances(instance_ids: [instance_id])
     instance = instance_results.data.instances.first
 
     # Set up the automatic boot scheduler
-    if config.deploy_type == :staging
+    if config.deploy_type == :staging && config.autoscale_type == 'timer'
       print 'Setting up weekly schedule ...'
       config.opsworks.set_time_based_auto_scaling(instance_id: instance_id, auto_scaling_schedule: config.schedule)
       print "done\n"
@@ -51,7 +52,7 @@ class Qops::Instance < Thor
       instance_results = config.opsworks.describe_instances(instance_ids: [instance_id])
       instance = instance_results.data.instances.first
 
-      if %w(online running_setup).include?(instance.status)
+      unless %w(booting requested pending).include?(instance.status)
         puts ' ' + instance.status
         true
       else
@@ -63,30 +64,43 @@ class Qops::Instance < Thor
     puts "Public IP: #{instance.public_ip}"
     puts "Private IP: #{instance.private_ip}"
 
-    # Setup the instance
+    # Monitor the instance setup.
     print 'Setup instance ...'
     iterator(manifest) do |i|
       instance_results = config.opsworks.describe_instances(instance_ids: [instance_id])
       instance = instance_results.data.instances.first
 
-      if ['online'].include?(instance.status)
+      if %w(online).include?(instance.status)
         puts ' ' + instance.status
         true
+      elsif %w(setup_failed).include?(instance.status)
+        puts ' ' + instance.status
+        read_failure_log({ instance_id: instance.instance_id }, {
+                last_only: true,
+                manifest: manifest.merge(
+                    hostname: instance.hostname,
+                    instance_id: instance.instance_id,
+                    private_ip: instance.private_ip,
+                    public_ip: instance.public_ip
+                )})
+        exit(-1)
       else
         print '.'
         print " #{instance.status} :" if been_a_minute?(i)
       end
     end
 
-    ping_slack(Quandl::Slack::InstanceUp, 'Added another instance', 'success',
-               manifest.merge(
-                 completed: Time.now,
-                 hostname: instance.hostname,
-                 instance_id: instance.instance_id,
-                 private_ip: instance.private_ip,
-                 public_ip: instance.public_ip.blank? ? 'N/A' : instance.public_ip
-               )
-              )
+    if creating_instance
+      ping_slack(Quandl::Slack::InstanceUp, 'Created another instance', 'success',
+                 manifest.merge(
+                   completed: Time.now,
+                   hostname: instance.hostname,
+                   instance_id: instance.instance_id,
+                   private_ip: instance.private_ip,
+                   public_ip: instance.public_ip.blank? ? 'N/A' : instance.public_ip
+                 )
+                )
+    end
 
     # Deploy the latest code to instance
     Qops::Deploy.new.app
@@ -109,7 +123,7 @@ class Qops::Instance < Thor
     end
 
     # Remove schedule if time based instance
-    if config.autoscale_type == :timer
+    if config.autoscale_type == 'timer'
       config.opsworks.set_time_based_auto_scaling(instance_id: instance_id, auto_scaling_schedule: {})
     end
 

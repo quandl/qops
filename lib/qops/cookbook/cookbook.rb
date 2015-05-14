@@ -91,7 +91,7 @@ class Qops::Cookbook < Thor
       fail ArgumentError.new("Must specify a '#{var}' in the config") unless @_config.send(var)
     end
 
-    fail ArgumentError.new("Cannot find/do not have access to cookbook directory: #{@_config.cookbook_dir}")
+    fail ArgumentError.new("Cannot find/do not have access to cookbook directory: #{@_config.cookbook_dir}") unless Dir.exist?(@_config.cookbook_dir)
 
     @_config
   end

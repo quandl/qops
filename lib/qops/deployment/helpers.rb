@@ -4,11 +4,33 @@ module Qops::DeployHelpers
   def config
     return @_config if @_config
 
-    Quandl::Slack.autogenerate_notifiers
+    Qops::Environment.notifiers
 
     @_config ||= Qops::Environment.new
     fail "Invalid configure deploy_type detected: #{@_config.deploy_type}" unless [:staging, :production].include?(@_config.deploy_type)
     @_config
+  end
+
+  def custom_json
+    return @_custom_json if @_custom_json
+
+    @_custom_json = {
+        deploy: {
+            config.app_name => {
+                scm: {
+                    revision: config.revision
+                }
+            }
+        }
+    }
+
+    unless ENV['DEPLOY_JSON'].blank?
+      your_json = JSON.parse(ENV['DEPLOY_JSON'])
+      @_custom_json[:deploy][config.app_name].merge!(your_json)
+      puts "Using custom json:\n#{JSON.pretty_generate(@_custom_json)}"
+    end
+
+    @_custom_json
   end
 
   def iterator(options)
@@ -18,7 +40,7 @@ module Qops::DeployHelpers
 
       if i + 1 == config.wait_iterations
         puts " failed to complete within #{config.wait_iterations} seconds"
-        ping_slack(Quandl::Slack::Release, 'Command failure', 'failure',
+        ping_slack(Quandl::Slack::Release, 'Command timeout', 'failure',
                    options.merge(failed_at: Time.now)
                   )
         exit(-1)
@@ -69,15 +91,10 @@ module Qops::DeployHelpers
         puts ' ' + deployment.status
 
         if deployment.status != 'successful'
-          commands = config.opsworks.describe_commands(deployment_id: deployment.deployment_id)
-          commands.data.each do |results|
-            results.each do |command|
-              puts "\nReading last 100 lines from #{command.log_url}\n"
-              puts open(command.log_url).read.split("\n")[-1 * config.command_log_lines..-1].join("\n")
-              puts "\nLog file at: #{command.log_url}"
-            end
-          end
+          read_failure_log(deployment_id: deployment.deployment_id)
+          exit(-1)
         end
+
         true
       else
         print '.'
@@ -91,21 +108,49 @@ module Qops::DeployHelpers
     print "\n"
   end
 
+  def read_failure_log(opsworks_options, options = {})
+    commands = config.opsworks.describe_commands(opsworks_options)
+    commands.data.each do |results|
+      results.each do |command|
+        if command.log_url
+          puts "\nReading last 100 lines from #{command.log_url}\n"
+          lines = open(command.log_url).read.split("\n")
+          num_lines = lines.count < config.command_log_lines ? lines.count : config.command_log_lines
+          puts open(command.log_url).read.split("\n")[-1 * num_lines..-1].join("\n")
+          puts "\nLog file at: #{command.log_url}"
+        end
+
+        ping_slack(Quandl::Slack::Release, 'Deployment failure', 'failure',
+            (options[:manifest] || {}).merge(
+                command: command.type,
+                status: command.status
+            )
+        )
+
+        if options[:last_only]
+          exit(-1)
+        end
+      end
+    end
+  end
+
   def requested_hostname
     return @requested_hostname if @requested_hostname
     if config.deploy_type == :staging
-      @requested_hostname = "vendor-#{config.deploy_type}-#{config.revision.parameterize}"
+      @requested_hostname = "#{config.app_name}-#{config.deploy_type}-#{config.revision.parameterize}"
     elsif config.deploy_type == :production
-      @requested_hostname = "vendor-app-#{config.revision.parameterize}"
+      @requested_hostname = "#{config.app_name}-#{config.revision.parameterize}"
       existing_hostnames = retrieve_instances.map(&:hostname)
       @requested_hostname += "-#{existing_hostnames.last.to_s.split('-').last.to_i + 1}"
     end
+
+    @requested_hostname = @requested_hostname[0..62]
   end
 
   def ping_slack(notifier, message, status, manifest)
     fields = manifest.keys
     fields.map! { |field| { title: field, value: manifest[field], short: true } }
-    notifier.ping("Vendor Dashboard: #{message}",
+    notifier.ping("#{config.app_name}: #{message}",
                   attachments: [{ color: status, mrkdwn_in: ['text'], fallback: 'Details', fields: fields }]
                  )
   end
