@@ -20,7 +20,7 @@ class Qops::Environment
       opsworks.config.credentials.access_key_id
       opsworks.config.credentials.secret_access_key
     rescue => e
-      raise 'Please update your aws credentials with: aws configure'
+      raise "There may be a problem with your aws credentials with: aws configure: #{e}"
     end
 
     puts "Running commands in deploy environment: #{deploy_type}"

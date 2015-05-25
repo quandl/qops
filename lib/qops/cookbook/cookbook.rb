@@ -88,7 +88,7 @@ class Qops::Cookbook < Thor
     @_config ||= Qops::Environment.new
 
     %w(cookbook_dir cookbook_s3_bucket cookbook_s3_path cookbook_name cookbook_version).each do |var|
-      fail ArgumentError.new("Must specify a '#{var}' in the config") unless @_config.send(var)
+      fail ArgumentError.new("Must specify a '#{var}' in the config") if !@_config.respond_to?(var) && !@_config.configuration.respond_to?(var)
     end
 
     fail ArgumentError.new("Cannot find/do not have access to cookbook directory: #{@_config.cookbook_dir}") unless Dir.exist?(@_config.cookbook_dir)
