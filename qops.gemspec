@@ -21,7 +21,6 @@ Gem::Specification.new do |s|
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.require_paths = ['lib']
 
-  s.add_runtime_dependency 'berkshelf', '>= 3.2.4'
   s.add_runtime_dependency 'thor', '>= 0.19.1'
   s.add_runtime_dependency 'aws-sdk', '>= 2.0.41'
   s.add_runtime_dependency 'quandl-config'
