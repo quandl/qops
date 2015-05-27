@@ -30,32 +30,38 @@ class Qops::Deploy < Thor
     deployment_params = base_deployment_params
     deployment_params[:command].merge!(args: { migrate: ['true'] })
     run_opsworks_command(deployment_params, [instances.first.instance_id])
-    ping_slack(Quandl::Slack::Release, "Deployed and migrated instance '#{instances.first.hostname}'", 'success',
-               manifest.merge(
-                 app_name: config.app_name,
-                 command: 'deploy + migrate',
-                 migrate: true,
-                 completed: Time.now,
-                 hostname: instances.first.hostname,
-                 instance_id: instances.first.instance_id
-               )
-              )
+    ping_slack(
+      'Quandl::Slack::Release',
+      "Deployed and migrated instance '#{instances.first.hostname}'",
+      'success',
+      manifest.merge(
+        app_name: config.app_name,
+        command: 'deploy + migrate',
+        migrate: true,
+        completed: Time.now,
+        hostname: instances.first.hostname,
+        instance_id: instances.first.instance_id
+      )
+    )
 
     # Deploy any remaining instances with migration off for production
-    if config.deploy_type == :production && instances.count > 1
-      print 'Deploying remaining instances ...'
-      deployment_params = base_deployment_params
-      run_opsworks_command(deployment_params)
-      ping_slack(Quandl::Slack::Release, 'Deployed All Instances', 'success',
-                 manifest.merge(
-                   app_name: config.app_name,
-                   command: 'deploy',
-                   migrate: false,
-                   completed: Time.now,
-                   hostname: instances.map(&:hostname),
-                   instance_id: instances.map(&:instance_id)
-                 )
-                )
-    end
+    return unless config.deploy_type == :production && instances.count > 1
+
+    print 'Deploying remaining instances ...'
+    deployment_params = base_deployment_params
+    run_opsworks_command(deployment_params)
+    ping_slack(
+      'Quandl::Slack::Release',
+      'Deployed All Instances',
+      'success',
+      manifest.merge(
+        app_name: config.app_name,
+        command: 'deploy',
+        migrate: false,
+        completed: Time.now,
+        hostname: instances.map(&:hostname),
+        instance_id: instances.map(&:instance_id)
+      )
+    )
   end
 end

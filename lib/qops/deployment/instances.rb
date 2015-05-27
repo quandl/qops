@@ -52,12 +52,12 @@ class Qops::Instance < Thor
       instance_results = config.opsworks.describe_instances(instance_ids: [instance_id])
       instance = instance_results.data.instances.first
 
-      unless %w(booting requested pending).include?(instance.status)
-        puts ' ' + instance.status
-        true
-      else
+      if %w(booting requested pending).include?(instance.status)
         print '.'
         print " #{instance.status} :" if been_a_minute?(i)
+      else
+        puts ' ' + instance.status
+        true
       end
     end
 
@@ -75,14 +75,14 @@ class Qops::Instance < Thor
         true
       elsif %w(setup_failed).include?(instance.status)
         puts ' ' + instance.status
-        read_failure_log({ instance_id: instance.instance_id }, {
-                last_only: true,
-                manifest: manifest.merge(
-                    hostname: instance.hostname,
-                    instance_id: instance.instance_id,
-                    private_ip: instance.private_ip,
-                    public_ip: instance.public_ip
-                )})
+        read_failure_log({ instance_id: instance.instance_id },
+          last_only: true,
+          manifest: manifest.merge(
+            hostname: instance.hostname,
+            instance_id: instance.instance_id,
+            private_ip: instance.private_ip,
+            public_ip: instance.public_ip
+          ))
         exit(-1)
       else
         print '.'
@@ -91,7 +91,7 @@ class Qops::Instance < Thor
     end
 
     if creating_instance
-      ping_slack(Quandl::Slack::InstanceUp, 'Created another instance', 'success',
+      ping_slack('Quandl::Slack::InstanceUp', 'Created another instance', 'success',
                  manifest.merge(
                    completed: Time.now,
                    hostname: instance.hostname,
@@ -156,7 +156,7 @@ class Qops::Instance < Thor
     puts "Terminating instance #{instance_id}"
     config.opsworks.delete_instance(instance_id: instance_id)
 
-    ping_slack(Quandl::Slack::InstanceDown, 'Remove existing instance', 'success',
+    ping_slack('Quandl::Slack::InstanceDown', 'Remove existing instance', 'success',
                manifest.merge(
                  completed: Time.now,
                  hostname: instance.hostname,
