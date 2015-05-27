@@ -21,8 +21,9 @@ end
 module Qops
 end
 
+require_relative 'qops/environment'
+require_relative 'qops/helpers'
 require_relative 'qops/deployment/helpers'
 require_relative 'qops/deployment/app'
 require_relative 'qops/deployment/instances'
 require_relative 'qops/cookbook/cookbook'
-require_relative 'qops/environment'

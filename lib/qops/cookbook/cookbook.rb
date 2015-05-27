@@ -1,4 +1,6 @@
 class Qops::Cookbook < Thor
+  include Qops::Helpers
+
   class_option :environment, aliases: :e, default: 'staging'
 
   def initialize(*args)
@@ -51,9 +53,34 @@ class Qops::Cookbook < Thor
     say('Check your JSON for errors!', :red)
   end
 
+  desc 'update_stack_cookbooks', 'Runs the opsworks command to update custom cookbooks.'
+  def update_stack_cookbooks
+    if yes?("Are you sure you want to run the 'Update Custom Cookbooks' command on stack #{config.stack_id}?", :yellow)
+      run_opsworks_command(
+        stack_id: config.stack_id,
+        command: {
+          name: 'update_custom_cookbooks'
+        }
+      )
+      say('Updated!', :green)
+    else
+      say('You said no, so we\'re done here.', :yellow)
+      exit(-1)
+    end
+  end
+
   desc 'release', 'Zip, package and update a new cookbook as a release.'
   def release
-    vendor && package && upload && update_custom_cookbooks
+    vendor && package && upload && update_custom_cookbooks && update_stack_cookbooks
+
+    ping_slack('Quandl::Slack::Cookbook', 'Cookbook updated', 'success',
+               command: 'opsworks cookbook release',
+               status: 'success',
+               name: config.cookbook_name,
+               version: config.cookbook_version,
+               stack: config.stack_id
+              )
+
     say('Released!', :green)
   end
 
@@ -70,6 +97,7 @@ class Qops::Cookbook < Thor
       say('Cookbooks updated', :green)
     else
       say('You said no, so we\'re done here.', :yellow)
+      exit(-1)
     end
   end
 
@@ -78,6 +106,7 @@ class Qops::Cookbook < Thor
     Dir.chdir(config.cookbook_dir) do
       remove_zip_files
       FileUtils.remove_dir('vendor') if File.directory?('vendor')
+      say("Cleaned up directory '#{config.cookbook_dir}/vendor'", :green)
     end
   end
 
@@ -85,6 +114,8 @@ class Qops::Cookbook < Thor
 
   def config
     return @_config if @_config
+
+    Qops::Environment.notifiers
     @_config ||= Qops::Environment.new
 
     %w(cookbook_dir cookbook_s3_bucket cookbook_s3_path cookbook_name cookbook_version).each do |var|
@@ -122,5 +153,6 @@ class Qops::Cookbook < Thor
 
   def remove_zip_files
     FileUtils.rm Dir.glob("#{config.cookbook_name}*.zip")
+    say("Cleaned up directory '#{config.cookbook_dir}/*.zip'", :green)
   end
 end

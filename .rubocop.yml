@@ -1,0 +1,54 @@
+AllCops:
+  Exclude:
+    - Gemfile
+    - bin/*
+    - config/boot.rb
+    - rgloader/loader.rb
+    - !ruby/regexp /.*solano.*\.rb$/
+    - !ruby/regexp /.*tddium.*\.rb$/
+  DisplayCopNames: true
+  DisplayStyleGuide: true
+Encoding:
+  Enabled: false
+LineLength:
+  Max: 180
+MethodLength:
+  Max: 90
+Documentation:
+  Enabled: false
+CyclomaticComplexity:
+  Enabled: false
+ClassAndModuleChildren:
+  Enabled: false
+Style/FileName:
+  Enabled: false
+Style/ClassAndModuleChildren:
+  SupportedStyles: compact
+Style/AccessorMethodName:
+  Enabled: false
+Style/RaiseArgs:
+  Enabled: false
+SignalException:
+  Enabled: false
+ClassLength:
+  Max: 200
+EachWithObject:
+  Enabled: false
+PerceivedComplexity:
+  Enabled: false
+TrivialAccessors:
+  Enabled: false
+Lint/RescueException:
+  Enabled: false
+RedundantSelf:
+  Enabled: false
+Style/AlignParameters:
+  Enabled: false
+Style/Lambda:
+  Enabled: false
+AbcSize:
+  Enabled: false
+BlockDelimiters:
+  Enabled: true
+MultilineOperationIndentation:
+  Enabled: false
