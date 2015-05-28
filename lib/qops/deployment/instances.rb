@@ -35,6 +35,9 @@ class Qops::Instance < Thor
       print "done\n"
     end
 
+    # Record the initial instance before doing anything.
+    initial_instance_state = instance
+
     # Start the instance if necessary
     print 'Booting instance ...'
     unless %w(online booting).include?(instance.status)
@@ -64,31 +67,7 @@ class Qops::Instance < Thor
     puts "Public IP: #{instance.public_ip}"
     puts "Private IP: #{instance.private_ip}"
 
-    # Monitor the instance setup.
-    print 'Setup instance ...'
-    iterator(manifest) do |i|
-      instance_results = config.opsworks.describe_instances(instance_ids: [instance_id])
-      instance = instance_results.data.instances.first
-
-      if %w(online).include?(instance.status)
-        puts ' ' + instance.status
-        true
-      elsif %w(setup_failed).include?(instance.status)
-        puts ' ' + instance.status
-        read_failure_log({ instance_id: instance.instance_id },
-          last_only: true,
-          manifest: manifest.merge(
-            hostname: instance.hostname,
-            instance_id: instance.instance_id,
-            private_ip: instance.private_ip,
-            public_ip: instance.public_ip
-          ))
-        exit(-1)
-      else
-        print '.'
-        print " #{instance.status} :" if been_a_minute?(i)
-      end
-    end
+    setup_instance(instance, initial_instance_state, manifest)
 
     if creating_instance
       ping_slack('Quandl::Slack::InstanceUp', 'Created another instance', 'success',
@@ -167,5 +146,52 @@ class Qops::Instance < Thor
               )
 
     puts 'Success'
+  end
+
+  private
+
+  def setup_instance(instance, initial_instance_state, manifest)
+    # If the previous instance setup failed then run the setup task again when trying to bring up the instance.
+    if initial_instance_state.status == 'setup_failed'
+      print 'Setup instance ...'
+      run_opsworks_command(
+        {
+          stack_id: config.stack_id,
+          command: {
+            name: 'setup'
+          }
+        },
+        [instance.instance_id]
+      )
+
+    # Monitor the existing instance setup.
+    else
+      print 'Setup instance ...'
+      iterator(manifest) do |i|
+        instance_results = config.opsworks.describe_instances(instance_ids: [instance.instance_id])
+        instance = instance_results.data.instances.first
+
+        if %w(online).include?(instance.status)
+          puts ' ' + instance.status
+          true
+        elsif %w(setup_failed).include?(instance.status)
+          puts ' ' + instance.status
+          read_failure_log(
+            { instance_id: instance.instance_id },
+            last_only: true,
+            manifest: manifest.merge(
+              hostname: instance.hostname,
+              instance_id: instance.instance_id,
+              private_ip: instance.private_ip,
+              public_ip: instance.public_ip
+            )
+          )
+          exit(-1)
+        else
+          print '.'
+          print " #{instance.status} :" if been_a_minute?(i)
+        end
+      end
+    end
   end
 end
