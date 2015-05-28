@@ -5,6 +5,10 @@ class Qops::Environment
 
   attr_reader :revision
 
+  def self.file_name
+    'opsworks'
+  end
+
   def self.notifiers
     @_notifiers ||= Quandl::Slack.autogenerate_notifiers
   end
@@ -29,7 +33,7 @@ class Qops::Environment
   end
 
   def file_name
-    'opsworks'
+    self.class.file_name
   end
 
   def opsworks
