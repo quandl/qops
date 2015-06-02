@@ -36,14 +36,14 @@ class Qops::Cookbook < Thor
 
   desc 'update_custom_json', 'Upload custom json to stack'
   def update_custom_json
-    # load JSON and check for errors
-    raw_json = File.read(File.join(config.cookbook_dir, 'custom.json'))
+    raw_json = File.read(File.join(config.cookbook_dir, config.cookbook_json))
     json = JSON.parse(raw_json)
-    say(json, :yellow)
+
+    say(JSON.pretty_generate(json), :yellow)
     if yes?("Are you sure you want to update the custom JSON for opsworks stack #{config.stack_id}?", :yellow)
       config.opsworks.update_stack(
         stack_id: config.stack_id,
-        custom_json: raw_json
+        custom_json: JSON.pretty_generate(json)
       )
       say('Updated!', :green)
     else

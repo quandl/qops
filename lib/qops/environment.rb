@@ -40,6 +40,10 @@ class Qops::Environment
     @_opsworks ||= Aws::OpsWorks::Client.new(region: configuration.region)
   end
 
+  def cookbook_json
+    configuration.cookbook_json || 'custom.json'
+  end
+
   def method_missing(method_sym, *arguments, &block)
     if configuration.respond_to?(method_sym)
       configuration.send(method_sym, *arguments, &block)
