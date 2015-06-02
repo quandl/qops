@@ -3,6 +3,7 @@ require 'aws-sdk'
 require 'json'
 require 'fileutils'
 require 'active_support/all'
+require 'pp'
 
 require 'quandl/slack'
 

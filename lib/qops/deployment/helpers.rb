@@ -17,9 +17,11 @@ module Qops::DeployHelpers
   def custom_json
     return @_custom_json if @_custom_json
 
+    application_name = config.opsworks.describe_apps(app_ids: [config.application_id]).apps.first.name
+
     @_custom_json = {
       deploy: {
-        config.app_name => {
+        application_name => {
           scm: {
             revision: config.revision
           }

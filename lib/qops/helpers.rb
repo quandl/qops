@@ -84,12 +84,15 @@ module Qops::Helpers
           puts "\nLog file at: #{command.log_url}"
         end
 
-        ping_slack('Quandl::Slack::Release', 'Deployment failure', 'failure',
-                   (options[:manifest] || {}).merge(
-                     command: command.type,
-                     status: command.status
-                   )
-                  )
+        ping_slack(
+          'Quandl::Slack::Release',
+          'Deployment failure',
+          'failure',
+          (options[:manifest] || {}).merge(
+            command: command.type,
+            status: command.status
+          )
+        )
 
         exit(-1) if options[:last_only]
       end
