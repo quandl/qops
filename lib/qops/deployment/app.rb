@@ -13,15 +13,18 @@ class Qops::Deploy < Thor
       puts "Preparing to deploy branch #{config.revision} to #{instances.first.hostname}"
     else
       instances = retrieve_instances
-      puts "Preparing to deploy branch #{config.revision} to all servers (#{instances.map(&:hostname).join(', ')})"
+      puts "Preparing to deploy default branch to all servers (#{instances.map(&:hostname).join(', ')})"
     end
 
     base_deployment_params = {
       stack_id: config.stack_id,
       app_id: config.application_id,
-      command: { name: 'deploy' },
-      custom_json: custom_json.to_json
+      command: { name: 'deploy' }
     }
+
+    if config.deploy_type != :production
+      base_deployment_params[:custom_json] = custom_json.to_json
+    end
 
     manifest = { environment: config.deploy_type }
 

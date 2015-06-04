@@ -63,7 +63,7 @@ module Qops::DeployHelpers
     if config.deploy_type == :staging
       @requested_hostname = "#{config.app_name}-#{config.deploy_type}-#{config.revision.parameterize}"
     elsif config.deploy_type == :production
-      @requested_hostname = "#{config.app_name}-#{config.revision.parameterize}"
+      @requested_hostname = "#{config.app_name}"
       existing_hostnames = retrieve_instances.map(&:hostname)
       @requested_hostname += "-#{existing_hostnames.last.to_s.split('-').last.to_i + 1}"
     end
