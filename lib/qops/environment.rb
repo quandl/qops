@@ -3,7 +3,7 @@ require 'quandl/config'
 class Qops::Environment
   include Quandl::Configurable
 
-  attr_reader :revision
+  attr_accessor :revision
 
   def self.file_name
     'opsworks'

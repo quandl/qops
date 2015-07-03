@@ -2,7 +2,9 @@ class Qops::Instance < Thor
   include Qops::DeployHelpers
 
   desc 'up', 'Deploy the current branch to a new or existing environment (default: staging)'
+  option :branch
   def up
+    initialize_options
     # Get the instance(s) to work with if they exist. In production we always create a new instacne
     instance = retrieve_instance if config.deploy_type == :staging
 
@@ -82,11 +84,13 @@ class Qops::Instance < Thor
     end
 
     # Deploy the latest code to instance
-    Qops::Deploy.new.app
+    Qops::Deploy.new([], options).app
   end
 
   desc 'down', 'Remove the instance associated with this branch or one given (default: staging, current branch)'
+  option :branch
   def down
+    initialize_options
     # Get the instance to shutdown
     if config.deploy_type == :staging
       instance = retrieve_instance
