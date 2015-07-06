@@ -46,6 +46,7 @@ staging:
 
 2. Install gem `qops` to your system. Be sure to use gem install `qops`. Do not include it as part of the bundle of your repo as it is mean't to be run outside of the scope of your project.
 3. Run `qops list` to get a list of commands you can run.
+4. Run `qops help <command>` for more information on command argument options
 
 ## FAQ:
 

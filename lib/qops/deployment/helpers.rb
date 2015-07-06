@@ -3,6 +3,10 @@ module Qops::DeployHelpers
 
   private
 
+  def initialize_options
+    config.revision = options[:branch] if options[:branch]
+  end
+
   def config
     return @_config if @_config
 

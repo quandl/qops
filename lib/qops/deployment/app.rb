@@ -2,7 +2,9 @@ class Qops::Deploy < Thor
   include Qops::DeployHelpers
 
   desc 'app', 'Deploy the latest version of the app to the environment'
+  option :branch
   def app
+    initialize_options
     if config.deploy_type == :staging
       instances = [retrieve_instance].compact
       if instances.count == 0
