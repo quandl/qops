@@ -1,5 +1,29 @@
 module Qops::Helpers
+  extend ActiveSupport::Concern
+
+  included do
+    class_option :environment, aliases: '-e', desc: 'The environment to use when running commands.'
+  end
+
+  class_methods do
+    def default_branch
+      if options[:environment] == 'staging' && `git --version`
+        `git symbolic-ref --short HEAD`.strip
+      else
+        'master'
+      end
+    end
+  end
+
   private
+
+  def initialize_run
+    return if @_run_initialized
+
+    @_run_initialized = true
+    verify_environment_selection
+    Qops::Environment.notifiers
+  end
 
   def been_a_minute?(i)
     i > 1 && i % 60 == 0
@@ -96,6 +120,39 @@ module Qops::Helpers
 
         exit(-1) if options[:last_only]
       end
+    end
+
+    exit(-1)
+  end
+
+  def verify_environment_selection
+    project_root = Pathname.new(Quandl::ProjectRoot.root)
+    file_path = project_root.join('config', "#{Qops::Environment.file_name}.yml")
+
+    if File.exist?(file_path)
+      raw_config = File.read(file_path)
+      erb_config = ERB.new(raw_config).result
+      configs = YAML.load(erb_config)
+
+      env = options[:environment]
+
+      msg = 'Run command using config environment:'
+      msg = "Invalid config environment '#{env}'. Switch to:" if env && !configs.keys.include?(env)
+
+      unless env && configs.keys.include?(env)
+        env = Thor::Shell::Color.new.ask(
+          msg,
+          :yellow,
+          limited_to: configs.keys.reject { |g| g.start_with?('_') },
+          echo: false
+        )
+      end
+
+      Quandl::Config.environment = env
+      puts "\nRunning commands with config environment: #{env}"
+    else
+      puts "Not a qops compatible project. Please be sure to add a config/opsworks.yml file as described in the readme. Path: #{file_path}"
+      exit(-1)
     end
   end
 end

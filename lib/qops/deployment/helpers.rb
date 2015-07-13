@@ -1,9 +1,16 @@
 module Qops::DeployHelpers
+  extend ActiveSupport::Concern
+
   include Qops::Helpers
+
+  included do
+    class_option :branch, type: :string, default: default_branch, aliases: '-b', desc: 'The branch to use when deploying to staging type environments'
+  end
 
   private
 
-  def initialize_options
+  def initialize_run
+    super
     config.revision = options[:branch] if options[:branch]
   end
 

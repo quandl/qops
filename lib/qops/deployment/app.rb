@@ -1,10 +1,10 @@
 class Qops::Deploy < Thor
   include Qops::DeployHelpers
 
-  desc 'app', 'Deploy the latest version of the app to the environment'
-  option :branch
+  desc 'app', 'Deploy the latest version of the app'
   def app
-    initialize_options
+    initialize_run
+
     if config.deploy_type == :staging
       instances = [retrieve_instance].compact
       if instances.count == 0
@@ -32,7 +32,7 @@ class Qops::Deploy < Thor
 
     # Deploy the first instance with migration on
     print "Migrating and deploying first instance (#{instances.first.hostname}) ..."
-    deployment_params = base_deployment_params
+    deployment_params = base_deployment_params.deep_dup
     deployment_params[:command].merge!(args: { migrate: ['true'] })
     run_opsworks_command(deployment_params, [instances.first.instance_id])
     ping_slack(
@@ -53,7 +53,7 @@ class Qops::Deploy < Thor
     return unless config.deploy_type == :production && instances.count > 1
 
     print 'Deploying remaining instances ...'
-    deployment_params = base_deployment_params
+    deployment_params = base_deployment_params.deep_dup
     run_opsworks_command(deployment_params)
     ping_slack(
       'Quandl::Slack::Release',

@@ -1,15 +1,9 @@
 class Qops::Cookbook < Thor
   include Qops::Helpers
 
-  class_option :environment, aliases: :e, default: 'staging'
-
-  def initialize(*args)
-    super
-    config # Setup config in initial directory
-  end
-
   desc 'vendor', 'Generate vendor directory to contain the cookbooks'
   def vendor
+    initialize_run
     cleanup
     Dir.chdir(config.cookbook_dir) do
       system('berks vendor vendor -e opsworks')
@@ -18,6 +12,7 @@ class Qops::Cookbook < Thor
 
   desc 'package', 'Package the cookbooks into a zip file in vendor'
   def package
+    initialize_run
     Dir.chdir(config.cookbook_dir) do
       remove_zip_files
       system("zip -r #{artifact_name} vendor/*")
@@ -26,6 +21,7 @@ class Qops::Cookbook < Thor
 
   desc 'upload', 'Uploads cookbooks to s3'
   def upload
+    initialize_run
     s3.put_object(
       bucket: config.cookbook_s3_bucket,
       acl: 'private',
@@ -36,6 +32,7 @@ class Qops::Cookbook < Thor
 
   desc 'update_custom_json', 'Upload custom json to stack'
   def update_custom_json
+    initialize_run
     raw_json = File.read(File.join(config.cookbook_dir, config.cookbook_json))
     json = JSON.parse(raw_json)
 
@@ -55,6 +52,7 @@ class Qops::Cookbook < Thor
 
   desc 'update_stack_cookbooks', 'Runs the opsworks command to update custom cookbooks.'
   def update_stack_cookbooks
+    initialize_run
     if yes?("Are you sure you want to run the 'Update Custom Cookbooks' command on stack #{config.stack_id}?", :yellow)
       run_opsworks_command(
         stack_id: config.stack_id,
@@ -112,10 +110,14 @@ class Qops::Cookbook < Thor
 
   private
 
+  def initialize_run
+    super
+    config
+  end
+
   def config
     return @_config if @_config
 
-    Qops::Environment.notifiers
     @_config ||= Qops::Environment.new
 
     %w(cookbook_dir cookbook_s3_bucket cookbook_s3_path cookbook_name cookbook_version).each do |var|
