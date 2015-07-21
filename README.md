@@ -1,4 +1,4 @@
-# opsworks_commands
+# Qops : Quandl Operations Helper
 
 1. In your repo's config directory create a file called opsworks.yml that looks something like:
 
@@ -50,4 +50,4 @@ staging:
 
 ## FAQ:
 
-* The `qops` gem may not be public please add your personal gemfury source to the gem path to install it.
+* The `qops` gem is currently not public. Please add your personal gemfury source to the gem path to install it.
