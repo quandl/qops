@@ -32,6 +32,8 @@ SignalException:
   Enabled: false
 ClassLength:
   Max: 200
+Metrics/ModuleLength:
+  Max: 150
 EachWithObject:
   Enabled: false
 PerceivedComplexity:
