@@ -8,11 +8,10 @@ class Qops::Deploy < Thor
     if config.deploy_type == :staging
       instances = [retrieve_instance].compact
       if instances.count == 0
-        puts 'Could not find instance to deploy to. Perhaps you need to run "rake deploy:instance:up" first'
-        exit(-1)
+        raise 'Could not find instance to deploy to. Perhaps you need to run "qops:instance:up" first'
       end
 
-      puts "Preparing to deploy branch #{config.revision} to #{instances.first.hostname}"
+      puts "Preparing to deploy branch #{default_revision} to instance #{instances.first.hostname}"
     else
       instances = retrieve_instances
       puts "Preparing to deploy default branch to all servers (#{instances.map(&:hostname).join(', ')})"
@@ -20,9 +19,15 @@ class Qops::Deploy < Thor
 
     base_deployment_params = {
       stack_id: config.stack_id,
-      app_id: config.application_id,
       command: { name: 'deploy' }
     }
+
+    if !config.application_id
+      Qops::Environment.print_with_colour('No application specified. Exiting without application deployment.')
+      exit(0)
+    else
+      base_deployment_params[:app_id] = config.application_id
+    end
 
     if config.deploy_type != :production
       base_deployment_params[:custom_json] = custom_json.to_json

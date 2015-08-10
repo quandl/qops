@@ -72,15 +72,18 @@ class Qops::Instance < Thor
     setup_instance(instance, initial_instance_state, manifest)
 
     if creating_instance
-      ping_slack('Quandl::Slack::InstanceUp', 'Created another instance', 'success',
-                 manifest.merge(
-                   completed: Time.now,
-                   hostname: instance.hostname,
-                   instance_id: instance.instance_id,
-                   private_ip: instance.private_ip,
-                   public_ip: instance.public_ip.blank? ? 'N/A' : instance.public_ip
-                 )
-                )
+      ping_slack(
+        'Quandl::Slack::InstanceUp',
+        'Created another instance',
+        'success',
+        manifest.merge(
+          completed: Time.now,
+          hostname: instance.hostname,
+          instance_id: instance.instance_id,
+          private_ip: instance.private_ip,
+          public_ip: instance.public_ip.blank? ? 'N/A' : instance.public_ip
+        )
+      )
     end
 
     # Deploy the latest code to instance
@@ -139,17 +142,26 @@ class Qops::Instance < Thor
     puts "Terminating instance #{instance_id}"
     config.opsworks.delete_instance(instance_id: instance_id)
 
-    ping_slack('Quandl::Slack::InstanceDown', 'Remove existing instance', 'success',
-               manifest.merge(
-                 completed: Time.now,
-                 hostname: instance.hostname,
-                 instance_id: instance.instance_id,
-                 private_ip: instance.private_ip,
-                 public_ip: instance.public_ip
-               )
-              )
+    ping_slack(
+      'Quandl::Slack::InstanceDown',
+      'Remove existing instance',
+      'success',
+      manifest.merge(
+        completed: Time.now,
+        hostname: instance.hostname,
+        instance_id: instance.instance_id,
+        private_ip: instance.private_ip,
+        public_ip: instance.public_ip
+      )
+    )
 
     puts 'Success'
+  end
+
+  desc 'rebuild', 'Runs the down then up command to rebuild an instance.'
+  def rebuild
+    down
+    up
   end
 
   private

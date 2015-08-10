@@ -7,6 +7,7 @@ require 'active_support/all'
 require 'pp'
 require 'optparse'
 require 'erb'
+require 'rainbow'
 
 require 'quandl/slack'
 

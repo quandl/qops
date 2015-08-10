@@ -26,4 +26,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'quandl-config', '>= 0.0.4'
   s.add_runtime_dependency 'quandl-slack'
   s.add_runtime_dependency 'activesupport', '>= 4.2.1'
+  s.add_runtime_dependency 'rainbow', '~> 2.0.0'
 end
