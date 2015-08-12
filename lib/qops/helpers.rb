@@ -5,22 +5,13 @@ module Qops::Helpers
     class_option :environment, aliases: '-e', desc: 'The environment to use when running commands.'
   end
 
-  class_methods do
-    def default_branch
-      if options[:environment] == 'staging' && `git --version`
-        `git symbolic-ref --short HEAD`.strip
-      else
-        'master'
-      end
-    end
-  end
-
   private
 
   def initialize_run
     return if @_run_initialized
 
     @_run_initialized = true
+    verify_opsworks_config
     verify_environment_selection
     Qops::Environment.notifiers
   end
@@ -97,35 +88,40 @@ module Qops::Helpers
   end
 
   def read_failure_log(opsworks_options, options = {})
-    commands = config.opsworks.describe_commands(opsworks_options)
-    commands.data.each do |results|
-      results.each do |command|
-        if command.log_url
-          puts "\nReading last 100 lines from #{command.log_url}\n"
-          lines = open(command.log_url).read.split("\n")
-          num_lines = lines.count < config.command_log_lines ? lines.count : config.command_log_lines
-          puts open(command.log_url).read.split("\n")[-1 * num_lines..-1].join("\n")
-          puts "\nLog file at: #{command.log_url}"
-        end
-
-        ping_slack(
-          'Quandl::Slack::Release',
-          'Deployment failure',
-          'failure',
-          (options[:manifest] || {}).merge(
-            command: command.type,
-            status: command.status
-          )
-        )
-
-        exit(-1) if options[:last_only]
+    results = config.opsworks.describe_commands(opsworks_options)
+    results.commands.each do |command|
+      if command.log_url
+        puts "\nReading last 100 lines from #{command.log_url}\n"
+        lines = open(command.log_url).read.split("\n")
+        num_lines = lines.count < config.command_log_lines ? lines.count : config.command_log_lines
+        puts open(command.log_url).read.split("\n")[-1 * num_lines..-1].join("\n")
+        puts "\nLog file at: #{command.log_url}"
       end
+
+      ping_slack(
+        'Quandl::Slack::Release',
+        'Deployment failure',
+        'failure',
+        (options[:manifest] || {}).merge(
+          command: command.type,
+          status: command.status
+        )
+      )
+
+      exit(-1) if options[:last_only]
     end
 
     exit(-1)
   end
 
+  def verify_opsworks_config
+    return if File.exist?("config/#{Qops::Environment.file_name}.yml")
+    raise "Could not find configuration file: config/#{Qops::Environment.file_name}.yml"
+  end
+
   def verify_environment_selection
+    return if Quandl::Config.environment
+
     project_root = Pathname.new(Quandl::ProjectRoot.root)
     file_path = project_root.join('config', "#{Qops::Environment.file_name}.yml")
 
@@ -151,8 +147,7 @@ module Qops::Helpers
       Quandl::Config.environment = env
       puts "\nRunning commands with config environment: #{env}"
     else
-      puts "Not a qops compatible project. Please be sure to add a config/opsworks.yml file as described in the readme. Path: #{file_path}"
-      exit(-1)
+      raise "Not a qops compatible project. Please be sure to add a config/opsworks.yml file as described in the readme. Path: #{file_path}"
     end
   end
 end
