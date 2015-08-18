@@ -7,7 +7,7 @@ require 'qops/version'
 Gem::Specification.new do |s|
   s.name        = 'qops'
   s.version     = Qops::VERSION
-  s.authors     = ['Matthew Basset', 'Clemeny Leung', 'Jason Byck']
+  s.authors     = ['Matthew Basset', 'Clemeny Leung', 'Jason Byck', 'Jun Li']
   s.email       = ['support@quandl.com']
   s.homepage    = 'https://github.com/quandl/opsworks_commands'
   s.summary     = 'Helper commands for deployment of opsworks projects.'

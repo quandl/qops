@@ -83,3 +83,4 @@ development:
 ## FAQ:
 
 * The `qops` gem is currently not public. Please add your personal gemfury source to the gem path to install it.
+* For `qops qops:instance:run_command` command, it provides two options: one is run commands against all instances of the stack all in once, one is run commands on each instances of the stack one by one randomly. When run commands one by one, between each execution of the command, there will be a delay. The delay is config by wait_deploy. By default it is 180 seconds when it is not defined. For now, run_command command will only support commends `setup` `configure` `install_dependencies` `update_dependencies`, since commands `update_custom_cookbooks` `deploy` was implemented before.
