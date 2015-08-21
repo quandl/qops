@@ -1,4 +1,4 @@
-class Qops::Instance < Thor
+class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
   include Qops::DeployHelpers
 
   desc 'up', 'Deploy the current branch to new or existing instance(s)'
@@ -115,58 +115,7 @@ class Qops::Instance < Thor
       instance_id = instance.instance_id
     end
 
-    # Remove schedule if time based instance
-    if config.autoscale_type == 'timer'
-      config.opsworks.set_time_based_auto_scaling(instance_id: instance_id, auto_scaling_schedule: {})
-    end
-
-    # For Elasticsearch cluster, remove from from public elb
-    if config.public_search_elb
-      elb.deregister_instances_from_load_balancer(load_balancer_name: "#{config.public_search_elb}",
-                                                  instances: [{ instance_id: "#{instance.ec2_instance_id}" }])
-    end
-
-    # Attempt to shutdown the instance
-    unless instance.status == 'stopped'
-      print "Attempting instance #{instance_id}-#{instance.hostname} shutdown ..."
-      config.opsworks.stop_instance(instance_id: instance_id)
-    end
-
-    manifest = {
-      environment: config.deploy_type,
-      app_name: config.app_name,
-      command: 'remove instance'
-    }
-
-    iterator(manifest) do |i|
-      instance_results = config.opsworks.describe_instances(instance_ids: [instance_id])
-      instance = instance_results.data.instances.first
-
-      if instance.status == 'stopped'
-        puts ' ' + instance.status
-        true
-      else
-        print '.'
-        print " #{instance.status} :" if been_a_minute?(i)
-      end
-    end
-
-    # Terminate the instance
-    puts "Terminating instance #{instance_id}"
-    config.opsworks.delete_instance(instance_id: instance_id)
-
-    ping_slack(
-      'Quandl::Slack::InstanceDown',
-      'Remove existing instance',
-      'success',
-      manifest.merge(
-        completed: Time.now,
-        hostname: instance.hostname,
-        instance_id: instance.instance_id,
-        private_ip: instance.private_ip,
-        public_ip: instance.public_ip
-      )
-    )
+    terminate_instance(instance_id)
 
     puts 'Success'
   end
@@ -175,6 +124,42 @@ class Qops::Instance < Thor
   def rebuild
     down
     up
+  end
+
+  desc 'clean', 'Cleans up old instances in staging type environments'
+  def clean
+    initialize_run
+
+    if config.deploy_type == :production
+      fail "Cannot clean instances in a #{config.deploy_type} environment"
+    end
+
+    terminated_instances = []
+
+    # Find all instances to be destroyed
+    retrieve_instances.each do |instance|
+      next if instance.hostname == 'master'
+
+      # Find the latest command since the instance was deployed
+      latest_command = Time.parse(instance.created_at)
+      config.opsworks.describe_commands(instance_id: instance.instance_id).commands.each do |command|
+        next if config.clean_commands_to_ignore.include?(command.type)
+        completed_at = Time.parse(command.completed_at || command.acknowledged_at || command.created_at)
+        latest_command = completed_at if completed_at > latest_command
+      end
+
+      # If the latest deployment is greater than the maximum alive time allowed remove the instance.
+      if Time.now.to_i - latest_command.to_i > config.max_instance_duration
+        terminate_instance(instance.instance_id)
+        terminated_instances << instance
+      end
+    end
+
+    if terminated_instances.any?
+      puts "Terminated instances: #{terminated_instances.map(&:hostname).join("\n")}"
+    else
+      puts 'No unused instances old enough to terminate.'
+    end
   end
 
   desc 'run_command', 'Run command on existing instance(s) at once or each one by one'
@@ -289,5 +274,65 @@ class Qops::Instance < Thor
         end
       end
     end
+  end
+
+  def terminate_instance(instance_id)
+    # Remove schedule if time based instance
+    if config.autoscale_type == 'timer'
+      config.opsworks.set_time_based_auto_scaling(instance_id: instance_id, auto_scaling_schedule: {})
+    end
+
+    # Get the instance from the id
+    instance = retrieve_instance(instance_id)
+
+    # For Elasticsearch cluster, remove from from public elb
+    if config.public_search_elb
+      elb.deregister_instances_from_load_balancer(
+        load_balancer_name: "#{config.public_search_elb}",
+        instances: [{ instance_id: "#{instance.ec2_instance_id}" }]
+      )
+    end
+
+    # Attempt to shutdown the instance
+    print "Attempting instance #{instance_id}-#{instance.hostname} shutdown ..."
+    unless instance.status == 'stopped'
+      config.opsworks.stop_instance(instance_id: instance_id)
+    end
+
+    manifest = {
+      environment: config.deploy_type,
+      app_name: config.app_name,
+      command: 'remove instance'
+    }
+
+    iterator(manifest) do |i|
+      instance_results = config.opsworks.describe_instances(instance_ids: [instance_id])
+      instance = instance_results.data.instances.first
+
+      if instance.status == 'stopped'
+        puts ' ' + instance.status
+        true
+      else
+        print '.'
+        print " #{instance.status} :" if been_a_minute?(i)
+      end
+    end
+
+    # Terminate the instance
+    puts "Terminating instance #{instance_id}"
+    config.opsworks.delete_instance(instance_id: instance_id, delete_volumes: true)
+
+    ping_slack(
+      'Quandl::Slack::InstanceDown',
+        'Remove existing instance',
+        'success',
+        manifest.merge(
+          completed: Time.now,
+          hostname: instance.hostname,
+          instance_id: instance.instance_id,
+          private_ip: instance.private_ip,
+          public_ip: instance.public_ip
+        )
+    )
   end
 end

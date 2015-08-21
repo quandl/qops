@@ -16,6 +16,8 @@ module Qops
         @_notifiers = false
         print_with_colour('Slack notifications disabled. Could not find slack configuration at: config/quandl/slack.yml', :warning)
       end
+    rescue NoMethodError => e
+      print_with_colour("Slack notifications disabled due to an error. #{e}", :warning)
     end
 
     def self.print_with_colour(message, level = :normal)
@@ -30,15 +32,15 @@ module Qops
     end
 
     def initialize
-      %w(deploy_type region stack_id).each do |v|
-        fail "Please configure #{v} before continuing." unless v
+      %w(deploy_type region stack_id app_name).each do |v|
+        fail "Please configure #{v} before continuing." unless option?(v)
       end
 
       begin
         opsworks.config.credentials.access_key_id
         opsworks.config.credentials.secret_access_key
       rescue => e
-        raise "There may be a problem with your aws credentials with: aws configure: #{e}"
+        raise "There may be a problem with your aws credentials. Please correct with `aws configure`. Error: #{e}"
       end
     end
 
@@ -60,6 +62,15 @@ module Qops
 
     def autoscale_type
       configuration.autoscale_type || nil
+    end
+
+    # Default 1 days
+    def max_instance_duration
+      configuration.max_instance_duration || 86_400
+    end
+
+    def clean_commands_to_ignore
+      configuration.clean_commands_to_ignore.present? ? configuration.clean_commands_to_ignore : %w(configure shutdown)
     end
 
     def file_name
