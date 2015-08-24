@@ -31,7 +31,7 @@ Style/RaiseArgs:
 SignalException:
   Enabled: false
 ClassLength:
-  Max: 200
+  Max: 250
 Metrics/ModuleLength:
   Max: 150
 EachWithObject:

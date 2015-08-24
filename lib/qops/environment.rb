@@ -54,6 +54,10 @@ module Qops
       configuration.wait_iterations || 600
     end
 
+    def wait_deploy
+      configuration.wait_deploy || 180
+    end
+
     def autoscale_type
       configuration.autoscale_type || nil
     end

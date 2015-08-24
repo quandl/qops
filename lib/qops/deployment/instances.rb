@@ -86,6 +86,13 @@ class Qops::Instance < Thor
       )
     end
 
+    # For Elasticsearch cluster, register with public elb
+    if config.public_search_elb
+      print "Register instance #{instance.ec2_instance_id} to elb #{config.public_search_elb}"
+      elb.register_instances_with_load_balancer(load_balancer_name: "#{config.public_search_elb}",
+                                                instances: [{ instance_id: "#{instance.ec2_instance_id}" }])
+    end
+
     # Deploy the latest code to instance
     Qops::Deploy.new([], options).app
   end
@@ -111,6 +118,12 @@ class Qops::Instance < Thor
     # Remove schedule if time based instance
     if config.autoscale_type == 'timer'
       config.opsworks.set_time_based_auto_scaling(instance_id: instance_id, auto_scaling_schedule: {})
+    end
+
+    # For Elasticsearch cluster, remove from from public elb
+    if config.public_search_elb
+      elb.deregister_instances_from_load_balancer(load_balancer_name: "#{config.public_search_elb}",
+                                                  instances: [{ instance_id: "#{instance.ec2_instance_id}" }])
     end
 
     # Attempt to shutdown the instance
@@ -164,7 +177,74 @@ class Qops::Instance < Thor
     up
   end
 
+  desc 'run_command', 'Run command on existing instance(s) at once or each one by one'
+  def run_command
+    initialize_run
+    instances = retrieve_instances
+
+    puts "Preparing to run command to all servers (#{instances.map(&:hostname).join(', ')})"
+
+    command = ask('Which command you want to execute?', limited_to: %w(setup configure install_dependencies update_dependencies))
+
+    option = ask('Which command you want to execute?', limited_to: %w(all_in_once one_by_one))
+
+    base_deployment_params = {
+      stack_id: config.stack_id,
+      command: { name: "#{command}" }
+    }
+
+    manifest = { environment: config.deploy_type }
+
+    case option
+    when 'all_in_once'
+      print "Run command #{command} on all instances at once ..."
+      deployment_params = base_deployment_params.deep_dup
+      run_opsworks_command(deployment_params)
+      ping_slack(
+        'Quandl::Slack::Release',
+        "Run command: `#{command}` on all instances",
+        'success',
+        manifest.merge(
+          app_name: config.app_name,
+          command: 'deploy',
+          migrate: false,
+          completed: Time.now,
+          hostname: instances.map(&:hostname),
+          instance_id: instances.map(&:instance_id)
+        )
+      )
+    else
+      instances.each do |instance|
+        print "Run command #{command} on instance #{instance.ec2_instance_id}"
+
+        run_opsworks_command(base_deployment_params, [instance.instance_id])
+
+        ping_slack('Quandl::Slack::InstanceDown', "Run command: `#{command}` on existing instance", 'success',
+                   manifest.merge(
+                     completed: Time.now,
+                     hostname: instance.hostname,
+                     instance_id: instance.instance_id,
+                     private_ip: instance.private_ip,
+                     public_ip: instance.public_ip
+                   )
+                  )
+        puts 'Success'
+        break if instance.instance_id == instances.last.instance_id
+        delay = config.wait_deploy
+        puts "wait for #{delay / 60.0} mintues"
+        sleep delay
+      end
+    end
+  end
+
   private
+
+  def elb
+    @elb ||= Aws::ElasticLoadBalancing::Client.new(
+      region: 'us-east-1',
+      access_key_id: config.opsworks.config.credentials.access_key_id,
+      secret_access_key: config.opsworks.config.credentials.secret_access_key)
+  end
 
   def setup_instance(instance, initial_instance_state, manifest)
     # If the previous instance setup failed then run the setup task again when trying to bring up the instance.
