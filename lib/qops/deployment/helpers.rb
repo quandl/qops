@@ -46,16 +46,22 @@ module Qops::DeployHelpers
     @_custom_json
   end
 
-  def retrieve_instances
+  def retrieve_instances(options = {})
     # Describe and create instances as necessary
-    instances_results = config.opsworks.describe_instances(layer_id: config.layer_id)
+    instances_results = config.opsworks.describe_instances({ layer_id: config.layer_id }.merge(options))
 
     # Determine if instance exists.
     instances_results.data.instances
   end
 
-  def retrieve_instance
-    # Describe and create instances as necessary
+  def retrieve_instance(instance_id = nil)
+    # Retrieve a specific instance as necessary
+    if instance_id
+      instances_results = config.opsworks.describe_instances(instance_ids: [instance_id])
+      return instances_results.data.instances.first
+    end
+
+    # Get instance based on hostname
     instances_results = config.opsworks.describe_instances(layer_id: config.layer_id)
 
     # Determine if instance exists.

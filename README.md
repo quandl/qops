@@ -29,6 +29,8 @@ _default: &default
   region: us-east-1
   app_name: 'wikiposit'
   instance_type: 't2.small'
+  max_instance_duration: 86400 # Optional
+  clean_commands_to_ignore: ['configure', 'shutdown] # Optional: A list of opsworks commands to ignore when calculating that last run time for the clean command. Ignores `configure` and `shutdown` commands by default.  
   cookbook_dir: cookbooks
   cookbook_name: wikiposit
   cookbook_version: "<%= IO.read(File.join(Dir.pwd, 'cookbooks/VERSION')).strip %>"
