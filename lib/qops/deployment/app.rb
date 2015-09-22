@@ -38,7 +38,8 @@ class Qops::Deploy < Thor
     # Deploy the first instance with migration on
     print "Migrating and deploying first instance (#{instances.first.hostname}) ..."
     deployment_params = base_deployment_params.deep_dup
-    deployment_params[:command].merge!(args: { migrate: ['true'] })
+    should_migrate = !config.option?(:migrate) || config.option?(:migrate) && config.migrate == true
+    deployment_params[:command].merge!(args: { migrate: ['true'] }) if should_migrate
     run_opsworks_command(deployment_params, [instances.first.instance_id])
     ping_slack(
       'Quandl::Slack::Release',
@@ -47,7 +48,7 @@ class Qops::Deploy < Thor
       manifest.merge(
         app_name: config.app_name,
         command: 'deploy + migrate',
-        migrate: true,
+        migrate: "#{should_migrate}",
         completed: Time.now,
         hostname: instances.first.hostname,
         instance_id: instances.first.instance_id
