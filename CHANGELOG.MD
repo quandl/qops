@@ -1,3 +1,7 @@
+# 0.9.2
+
+* Added options to select migrate database, but default migrate option is true.
+
 # 0.9.0
 
 * Added the clean command to be used to clean old staging instances that have not had commands run against them for a given period.
