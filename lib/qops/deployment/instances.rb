@@ -31,7 +31,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
     instance = instance_results.data.instances.first
 
     # Set up the automatic boot scheduler
-    if config.deploy_type == :staging && config.autoscale_type == 'timer'
+    if config.autoscale_type == 'timer'
       print 'Setting up weekly schedule ...'
       config.opsworks.set_time_based_auto_scaling(instance_id: instance_id, auto_scaling_schedule: config.schedule)
       print "done\n"
