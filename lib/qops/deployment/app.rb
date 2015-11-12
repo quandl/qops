@@ -7,14 +7,19 @@ class Qops::Deploy < Thor
 
     if config.deploy_type == :staging
       instances = [retrieve_instance].compact
-      if instances.count == 0
-        raise 'Could not find instance to deploy to. Perhaps you need to run "qops:instance:up" first'
-      end
-
-      puts "Preparing to deploy branch #{default_revision} to instance #{instances.first.hostname}"
     else
       instances = retrieve_instances
-      puts "Preparing to deploy default branch to all servers (#{instances.map(&:hostname).join(', ')})"
+    end
+    online_instances = instances.select { |instance| instance.status == 'online' }
+
+    if online_instances.count == 0
+      raise 'Could not find any running instance(s) to deploy to. Perhaps you need to run "qops:instance:up" first'
+    end
+
+    if config.deploy_type == :staging
+      puts "Preparing to deploy branch #{default_revision} to instance #{online_instances.first.hostname}"
+    else
+      puts "Preparing to deploy default branch to all (online) servers (#{online_instances.map(&:hostname).join(', ')})"
     end
 
     base_deployment_params = {
@@ -36,27 +41,28 @@ class Qops::Deploy < Thor
     manifest = { environment: config.deploy_type }
 
     # Deploy the first instance with migration on
-    print "Migrating and deploying first instance (#{instances.first.hostname}) ..."
+    first_instance = online_instances.first
+    print "Migrating and deploying first instance (#{first_instance.hostname}) ..."
     deployment_params = base_deployment_params.deep_dup
     should_migrate = !config.option?(:migrate) || config.option?(:migrate) && config.migrate == true
     deployment_params[:command].merge!(args: { migrate: ['true'] }) if should_migrate
-    run_opsworks_command(deployment_params, [instances.first.instance_id])
+    run_opsworks_command(deployment_params, [first_instance.instance_id])
     ping_slack(
       'Quandl::Slack::Release',
-      "Deployed and migrated instance '#{instances.first.hostname}'",
+      "Deployed and migrated instance '#{first_instance.hostname}'",
       'success',
       manifest.merge(
         app_name: config.app_name,
         command: 'deploy + migrate',
         migrate: "#{should_migrate}",
         completed: Time.now,
-        hostname: instances.first.hostname,
-        instance_id: instances.first.instance_id
+        hostname: first_instance.hostname,
+        instance_id: first_instance.instance_id
       )
     )
 
     # Deploy any remaining instances with migration off for production
-    return unless config.deploy_type == :production && instances.count > 1
+    return unless config.deploy_type == :production && online_instances.count > 1
 
     print 'Deploying remaining instances ...'
     deployment_params = base_deployment_params.deep_dup
@@ -70,8 +76,8 @@ class Qops::Deploy < Thor
         command: 'deploy',
         migrate: false,
         completed: Time.now,
-        hostname: instances.map(&:hostname),
-        instance_id: instances.map(&:instance_id)
+        hostname: online_instances.map(&:hostname),
+        instance_id: online_instances.map(&:instance_id)
       )
     )
   end
