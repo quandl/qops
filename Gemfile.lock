@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    qops (0.10.0)
+    qops (0.10.1)
       activesupport (>= 4.2.1)
       aws-sdk (>= 2.0.41)
       quandl-config (>= 0.1.0)

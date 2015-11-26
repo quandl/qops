@@ -15,7 +15,7 @@ module Qops::DeployHelpers
     Qops::Environment.notifiers
     @_config ||= Qops::Environment.new
 
-    fail "Invalid configure deploy_type detected: #{@_config.deploy_type}" unless [:staging, :production].include?(@_config.deploy_type)
+    fail "Invalid configure deploy_type detected: #{@_config.deploy_type}" unless %w(staging production).include?(@_config.deploy_type)
 
     @_config
   end
@@ -74,9 +74,9 @@ module Qops::DeployHelpers
 
   def requested_hostname
     return @requested_hostname if @requested_hostname
-    if config.deploy_type == :staging
+    if config.deploy_type == 'staging'
       @requested_hostname = default_revision.parameterize
-    elsif config.deploy_type == :production
+    elsif config.deploy_type == 'production'
       @requested_hostname = config.app_name
       existing_hostnames = retrieve_instances.map(&:hostname)
       @requested_hostname += "-#{existing_hostnames.last.to_s.split('-').last.to_i + 1}"
@@ -88,7 +88,7 @@ module Qops::DeployHelpers
   end
 
   def default_revision
-    return 'master' unless config.deploy_type == :staging
+    return 'master' unless config.deploy_type == 'staging'
     if options[:branch].present?
       options[:branch]
     elsif `git --version`

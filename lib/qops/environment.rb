@@ -48,6 +48,10 @@ module Qops
       configuration.application_id unless configuration.application_id.blank?
     end
 
+    def deploy_type
+      configuration.deploy_type.to_s
+    end
+
     def command_log_lines
       configuration.command_log_lines || 100
     end

@@ -5,7 +5,7 @@ class Qops::Deploy < Thor
   def app
     initialize_run
 
-    if config.deploy_type == :staging
+    if config.deploy_type == 'staging'
       instances = [retrieve_instance].compact
     else
       instances = retrieve_instances
@@ -16,7 +16,7 @@ class Qops::Deploy < Thor
       raise 'Could not find any running instance(s) to deploy to. Perhaps you need to run "qops:instance:up" first'
     end
 
-    if config.deploy_type == :staging
+    if config.deploy_type == 'staging'
       puts "Preparing to deploy branch #{default_revision} to instance #{online_instances.first.hostname}"
     else
       puts "Preparing to deploy default branch to all (online) servers (#{online_instances.map(&:hostname).join(', ')})"
@@ -34,7 +34,7 @@ class Qops::Deploy < Thor
       base_deployment_params[:app_id] = config.application_id
     end
 
-    if config.deploy_type != :production
+    if config.deploy_type != 'production'
       base_deployment_params[:custom_json] = custom_json.to_json
     end
 
@@ -62,7 +62,7 @@ class Qops::Deploy < Thor
     )
 
     # Deploy any remaining instances with migration off for production
-    return unless config.deploy_type == :production && online_instances.count > 1
+    return unless config.deploy_type == 'production' && online_instances.count > 1
 
     print 'Deploying remaining instances ...'
     deployment_params = base_deployment_params.deep_dup

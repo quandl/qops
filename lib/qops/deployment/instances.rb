@@ -6,7 +6,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
     initialize_run
 
     # Get the instance(s) to work with if they exist. In production we always create a new instacne
-    instance = retrieve_instance if config.deploy_type == :staging
+    instance = retrieve_instance if config.deploy_type == 'staging'
 
     # Create the instance if necessary
     if instance
@@ -102,9 +102,9 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
     initialize_run
 
     # Get the instance to shutdown
-    if config.deploy_type == :staging
+    if config.deploy_type == 'staging'
       instance = retrieve_instance
-    elsif config.deploy_type == :production
+    elsif config.deploy_type == 'production'
       instance = retrieve_instances.first
     end
 
@@ -130,7 +130,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
   def clean
     initialize_run
 
-    if config.deploy_type == :production
+    if config.deploy_type == 'production'
       fail "Cannot clean instances in a #{config.deploy_type} environment"
     end
 
