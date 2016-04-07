@@ -82,6 +82,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
     puts "Public IP: #{instance.public_ip}"
     puts "Private IP: #{instance.private_ip}"
 
+    tag_instance(instance)
     setup_instance(instance, initial_instance_state, manifest)
 
     if creating_instance

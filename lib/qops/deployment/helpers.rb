@@ -5,6 +5,7 @@ module Qops::DeployHelpers
 
   included do
     class_option :branch, type: :string, aliases: '-b', desc: 'The branch to use when deploying to staging type environments'
+    class_option :hostname, type: :string, aliases: '-h', desc: 'Fully override the hostname that qops would normally give the instance'
   end
 
   private
@@ -46,19 +47,41 @@ module Qops::DeployHelpers
     instances.find { |k| k.hostname == requested_hostname }
   end
 
+  def tag_instance(instance)
+    print "Tagging instance #{instance.hostname}\n"
+    config.ec2.create_tags(
+      resources: [instance.ec2_instance_id],
+      tags: [
+        {
+          key: 'environment',
+          value: config.deploy_type
+        }
+      ]
+    )
+  end
+
   def requested_hostname
     return @requested_hostname if @requested_hostname
-    if config.deploy_type == 'staging'
-      @requested_hostname = default_revision.parameterize
-    elsif config.deploy_type == 'production'
-      @requested_hostname = config.app_name
-      existing_hostnames = retrieve_instances.map(&:hostname)
-      @requested_hostname += "-#{existing_hostnames.sort.last.to_s.split('-').last.to_i + 1}"
+    if options[:hostname]
+      @requested_hostname = options[:hostname]
+      puts "NOTE: You have specified a custom hostname of #{@requested_hostname}. Be sure to continue to use this hostname for future commands to avoid problems."
+
+    # Alternative flow if user has not overridden the hostname
+    else
+      if config.deploy_type == 'staging'
+        @requested_hostname = default_revision.parameterize
+      elsif config.deploy_type == 'production'
+        @requested_hostname = config.app_name
+        existing_hostnames = retrieve_instances.map(&:hostname)
+        @requested_hostname += "-#{existing_hostnames.sort.last.to_s.split('-').last.to_i + 1}"
+      end
+      @requested_hostname = config.hostname_prefix + @requested_hostname
     end
 
     @requested_hostname = @requested_hostname.gsub(/[^A-Za-z0-9\-]+/, '-').gsub(/-+/, '-')
     @requested_hostname = @requested_hostname[0..62]
     @requested_hostname = @requested_hostname.match(/^([A-Za-z0-9\-]+).*$/)[1]
+    @requested_hostname
   end
 
   def default_revision

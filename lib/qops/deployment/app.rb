@@ -63,12 +63,19 @@ class Qops::Deploy < Thor
       )
     )
 
+    tag_instance(first_instance)
+
     # Deploy any remaining instances with migration off for production
     return unless config.deploy_type == 'production' && online_instances.count > 1
 
     print 'Deploying remaining instances ...'
     deployment_params = base_deployment_params.deep_dup
     run_opsworks_command(deployment_params)
+
+    online_instances.each do |instance|
+      tag_instance(instance)
+    end
+
     ping_slack(
       'Quandl::Slack::Release',
       'Deployed All Instances',

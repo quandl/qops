@@ -82,7 +82,11 @@ module Qops
     end
 
     def opsworks
-      @_opsworks ||= Aws::OpsWorks::Client.new(region: configuration.region)
+      @_opsworks_client ||= Aws::OpsWorks::Client.new(region: configuration.region)
+    end
+
+    def ec2
+      @_ec2_client ||= Aws::EC2::Client.new(region: configuration.region)
     end
 
     def cookbook_json
@@ -95,6 +99,10 @@ module Qops
 
     def root_volume_size
       configuration.root_volume_size || 30
+    end
+
+    def hostname_prefix
+      configuration.hostname_prefix || ''
     end
 
     private
