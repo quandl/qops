@@ -152,7 +152,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
 
     # Find all instances to be destroyed
     retrieve_instances.each do |instance|
-      next if instance.hostname == 'master'
+      next if instance.hostname == "#{config.hostname_prefix}master"
 
       # Find the latest command since the instance was deployed
       latest_command = Time.parse(instance.created_at)
@@ -308,7 +308,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
     end
 
     # Attempt to shutdown the instance
-    print "Attempting instance #{instance_id}-#{instance.hostname} shutdown ..."
+    print "Attempting instance #{instance_id} - #{instance.hostname} shutdown ..."
     unless instance.status == 'stopped'
       config.opsworks.stop_instance(instance_id: instance_id)
     end
