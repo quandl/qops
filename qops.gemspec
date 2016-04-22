@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.license     = 'MIT'
 
   s.platform = Gem::Platform::RUBY
-  s.required_ruby_version = '>= 2.2.4'
+  s.required_ruby_version = '>= 2.2'
 
   s.files = Dir['{lib,bin}/**/*', 'README.md']
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
