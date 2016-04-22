@@ -154,6 +154,19 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
     retrieve_instances.each do |instance|
       next if instance.hostname == "#{config.hostname_prefix}master"
 
+      ec2instances = config.ec2.describe_instances(instance_ids: [instance.ec2_instance_id])
+      next if ec2instances.reservations.empty?
+
+      # Get various tag values
+      ec2instance = ec2instances.reservations.first.instances.first
+      environment = ec2instance.tags.find { |t| t.key == 'environment' }
+      cleanable = ec2instance.tags.find { |t| t.key == 'cleanable' }
+      branch = ec2instance.tags.find { |t| t.key == 'branch' }
+
+      next unless cleanable && cleanable.value == 'true'
+      next unless environment && environment.value == 'staging'
+      next unless branch && branch.value == 'master'
+
       # Find the latest command since the instance was deployed
       latest_command = Time.parse(instance.created_at)
       config.opsworks.describe_commands(instance_id: instance.instance_id).commands.each do |command|

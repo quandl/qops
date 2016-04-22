@@ -1,8 +1,6 @@
 class Qops::Deploy < Thor
   include Qops::DeployHelpers
 
-  class_option :custom_json, type: :string, aliases: '-j', desc: 'A custom json that will be used during a deployment of the app. ex: \'{ "custom_attrs": "are awesome!"}\''
-
   desc 'app', 'Deploy the latest version of the app'
   def app
     initialize_run
@@ -19,7 +17,7 @@ class Qops::Deploy < Thor
     end
 
     if config.deploy_type == 'staging'
-      puts "Preparing to deploy branch #{default_revision} to instance #{online_instances.first.hostname}"
+      puts "Preparing to deploy branch #{revision_used} to instance #{online_instances.first.hostname}"
     else
       puts "Preparing to deploy default branch to all (online) servers (#{online_instances.map(&:hostname).join(', ')})"
     end
@@ -104,7 +102,7 @@ class Qops::Deploy < Thor
       @_custom_json[:deploy] = {
         application_name => {
           scm: {
-            revision: default_revision
+            revision: revision_used
           }
         }
       }

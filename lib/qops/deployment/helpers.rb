@@ -4,6 +4,7 @@ module Qops::DeployHelpers
   include Qops::Helpers
 
   included do
+    class_option :custom_json, type: :string, aliases: '-j', desc: 'A custom json that will be used during a deployment of the app. ex: \'{ "custom_attrs": "are awesome!"}\''
     class_option :branch, type: :string, aliases: '-b', desc: 'The branch to use when deploying to staging type environments'
     class_option :hostname, type: :string, aliases: '-h', desc: 'Fully override the hostname that qops would normally give the instance'
   end
@@ -49,14 +50,32 @@ module Qops::DeployHelpers
 
   def tag_instance(instance)
     print "Tagging instance #{instance.hostname}\n"
+
+    tags = [
+      {
+        key: 'environment',
+        value: config.deploy_type
+      },
+      {
+        key: 'branch',
+        value: revision_used
+      },
+      {
+        key: 'app',
+        value: config.app_name
+      }
+    ]
+
+    if config.deploy_type == 'staging'
+      tags << {
+        key: 'cleanable',
+        value: 'true'
+      }
+    end
+
     config.ec2.create_tags(
       resources: [instance.ec2_instance_id],
-      tags: [
-        {
-          key: 'environment',
-          value: config.deploy_type
-        }
-      ]
+      tags: tags
     )
   end
 
@@ -69,7 +88,7 @@ module Qops::DeployHelpers
     # Alternative flow if user has not overridden the hostname
     else
       if config.deploy_type == 'staging'
-        @requested_hostname = default_revision.parameterize
+        @requested_hostname = revision_used.parameterize
       elsif config.deploy_type == 'production'
         @requested_hostname = config.app_name
         existing_hostnames = retrieve_instances.map(&:hostname)
@@ -84,7 +103,7 @@ module Qops::DeployHelpers
     @requested_hostname
   end
 
-  def default_revision
+  def revision_used
     return 'master' unless config.deploy_type == 'staging'
     if options[:branch].present?
       options[:branch]
