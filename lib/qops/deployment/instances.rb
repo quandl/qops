@@ -163,9 +163,9 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
       cleanable = ec2instance.tags.find { |t| t.key == 'cleanable' }
       branch = ec2instance.tags.find { |t| t.key == 'branch' }
 
-      next unless cleanable && cleanable.value == 'true'
-      next unless environment && environment.value == 'staging'
-      next unless branch && branch.value == 'master'
+      next if !cleanable || cleanable.value != 'true'
+      next if !environment || environment.value != 'staging'
+      next if !branch || branch.value == 'master'
 
       # Find the latest command since the instance was deployed
       latest_command = Time.parse(instance.created_at)
