@@ -74,7 +74,7 @@ module Qops
     end
 
     def clean_commands_to_ignore
-      configuration.clean_commands_to_ignore.present? ? configuration.clean_commands_to_ignore : %w(configure shutdown)
+      configuration.clean_commands_to_ignore.present? ? configuration.clean_commands_to_ignore : %w(update_custom_cookbooks update_agent configure shutdown)
     end
 
     def file_name
