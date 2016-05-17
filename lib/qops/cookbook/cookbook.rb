@@ -76,8 +76,7 @@ class Qops::Cookbook < Thor
                status: 'success',
                name: config.cookbook_name,
                version: config.cookbook_version,
-               stack: config.stack_id
-              )
+               stack: config.stack_id)
 
     say('Released!', :green)
   end
@@ -91,7 +90,8 @@ class Qops::Cookbook < Thor
         custom_cookbooks_source: {
           type: 's3',
           url: "https://s3.amazonaws.com/#{config.cookbook_s3_bucket}/#{remote_artifact_file}"
-        })
+        }
+      )
       say('Cookbooks updated', :green)
     else
       say('You said no, so we\'re done here.', :yellow)

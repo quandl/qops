@@ -33,7 +33,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
             }
           }
         ],
-        ebs_optimized: !!(config.deploy_type =~ /production/)
+        ebs_optimized: !!(config.deploy_type =~ /production/) # rubocop:disable Style/DoubleNegation
       }
       puts 'Creating instance with params: ' + params.inspect
       instance_id = config.opsworks.create_instance(params).data.instance_id
@@ -238,8 +238,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
                      instance_id: instance.instance_id,
                      private_ip: instance.private_ip,
                      public_ip: instance.public_ip
-                   )
-                  )
+                   ))
         puts 'Success'
         break if instance.instance_id == instances.last.instance_id
         delay = config.wait_deploy
@@ -255,7 +254,8 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
     @elb ||= Aws::ElasticLoadBalancing::Client.new(
       region: 'us-east-1',
       access_key_id: config.opsworks.config.credentials.access_key_id,
-      secret_access_key: config.opsworks.config.credentials.secret_access_key)
+      secret_access_key: config.opsworks.config.credentials.secret_access_key
+    )
   end
 
   def setup_instance(instance, initial_instance_state, manifest)

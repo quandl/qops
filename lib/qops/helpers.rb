@@ -28,8 +28,7 @@ module Qops::Helpers
       if i + 1 == config.wait_iterations
         puts " failed to complete within #{config.wait_iterations} seconds"
         ping_slack('Quandl::Slack::Release', 'Command timeout', 'failure',
-                   options.merge(failed_at: Time.now)
-                  )
+                   options.merge(failed_at: Time.now))
         exit(-1)
       elsif been_a_minute?(i)
         print " #{i / 60} minute(s) "
@@ -47,8 +46,7 @@ module Qops::Helpers
       notifier_class = notifier.constantize
 
       notifier_class.ping("#{config.app_name}: #{message}",
-                          attachments: [{ color: status, mrkdwn_in: ['text'], fallback: 'Details', fields: fields }]
-                         )
+                          attachments: [{ color: status, mrkdwn_in: ['text'], fallback: 'Details', fields: fields }])
     else
       puts "#{config.app_name}: #{message}"
       pp fields
