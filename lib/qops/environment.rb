@@ -105,6 +105,10 @@ module Qops
       configuration.hostname_prefix || ''
     end
 
+    def ebs_optimize
+      !configuration.ebs_optimize.nil? ? configuration.ebs_optimize : !!(deploy_type =~ /production/) # rubocop:disable Style/DoubleNegation
+    end
+
     private
 
     def method_missing(method_sym, *arguments, &block)

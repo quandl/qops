@@ -33,7 +33,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
             }
           }
         ],
-        ebs_optimized: !!(config.deploy_type =~ /production/) # rubocop:disable Style/DoubleNegation
+        ebs_optimized: config.ebs_optimize
       }
       puts 'Creating instance with params: ' + params.inspect
       instance_id = config.opsworks.create_instance(params).data.instance_id
