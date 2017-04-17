@@ -17,7 +17,7 @@ module Qops::Helpers
   end
 
   def been_a_minute?(i)
-    i > 1 && i % 60 == 0
+    i > 1 && (i % 60).zero?
   end
 
   def iterator(options)
@@ -126,7 +126,7 @@ module Qops::Helpers
     if File.exist?(file_path) # rubocop:disable Style/GuardClause
       raw_config = File.read(file_path)
       erb_config = ERB.new(raw_config).result
-      configs = YAML.load(erb_config)
+      configs = YAML.safe_load(erb_config)
 
       env = options[:environment]
 

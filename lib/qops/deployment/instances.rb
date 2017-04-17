@@ -55,7 +55,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
 
     # Start the instance if necessary
     print 'Booting instance ...'
-    unless %w(online booting).include?(instance.status)
+    unless %w[online booting].include?(instance.status)
       config.opsworks.start_instance(instance_id: instance_id)
     end
 
@@ -70,7 +70,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
       instance_results = config.opsworks.describe_instances(instance_ids: [instance_id])
       instance = instance_results.data.instances.first
 
-      if %w(booting requested pending).include?(instance.status)
+      if %w[booting requested pending].include?(instance.status)
         print '.'
         print " #{instance.status} :" if been_a_minute?(i)
       else
@@ -196,9 +196,9 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
 
     puts "Preparing to run command to all servers (#{instances.map(&:hostname).join(', ')})"
 
-    command = ask('Which command you want to execute?', limited_to: %w(setup configure install_dependencies update_dependencies))
+    command = ask('Which command you want to execute?', limited_to: %w[setup configure install_dependencies update_dependencies])
 
-    option = ask('Which command you want to execute?', limited_to: %w(all_in_once one_by_one))
+    option = ask('Which command you want to execute?', limited_to: %w[all_in_once one_by_one])
 
     base_deployment_params = {
       stack_id: config.stack_id,
@@ -259,9 +259,10 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
   end
 
   def setup_instance(instance, initial_instance_state, manifest)
+    print 'Setup instance ...'
+
     # If the previous instance setup failed then run the setup task again when trying to bring up the instance.
     if initial_instance_state.status == 'setup_failed'
-      print 'Setup instance ...'
       run_opsworks_command(
         {
           stack_id: config.stack_id,
@@ -274,15 +275,14 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
 
     # Monitor the existing instance setup.
     else
-      print 'Setup instance ...'
       iterator(manifest) do |i|
         instance_results = config.opsworks.describe_instances(instance_ids: [instance.instance_id])
         instance = instance_results.data.instances.first
 
-        if %w(online).include?(instance.status)
+        if %w[online].include?(instance.status)
           puts ' ' + instance.status
           true
-        elsif %w(setup_failed).include?(instance.status)
+        elsif %w[setup_failed].include?(instance.status)
           puts ' ' + instance.status
           read_failure_log(
             { instance_id: instance.instance_id },

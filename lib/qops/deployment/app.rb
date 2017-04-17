@@ -12,7 +12,7 @@ class Qops::Deploy < Thor
                 end
     online_instances = instances.select { |instance| instance.status == 'online' }
 
-    if online_instances.count == 0
+    if online_instances.zero?
       raise 'Could not find any running instance(s) to deploy to. Perhaps you need to run "qops:instance:up" first'
     end
 

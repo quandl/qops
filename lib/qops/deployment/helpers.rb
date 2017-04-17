@@ -17,7 +17,7 @@ module Qops::DeployHelpers
     Qops::Environment.notifiers
     @_config ||= Qops::Environment.new
 
-    fail "Invalid configure deploy_type detected: #{@_config.deploy_type}" unless %w(staging production).include?(@_config.deploy_type)
+    fail "Invalid configure deploy_type detected: #{@_config.deploy_type}" unless %w[staging production].include?(@_config.deploy_type)
 
     @_config
   end
