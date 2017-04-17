@@ -126,7 +126,7 @@ module Qops::Helpers
     if File.exist?(file_path) # rubocop:disable Style/GuardClause
       raw_config = File.read(file_path)
       erb_config = ERB.new(raw_config).result
-      configs = YAML.safe_load(erb_config)
+      configs = YAML.load(erb_config)
 
       env = options[:environment]
 

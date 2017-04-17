@@ -54,3 +54,5 @@ BlockDelimiters:
   Enabled: true
 MultilineOperationIndentation:
   Enabled: false
+Security/YAMLLoad:
+  Enabled: false
