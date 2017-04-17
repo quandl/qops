@@ -68,6 +68,10 @@ module Qops
       configuration.autoscale_type || nil
     end
 
+    def opsworks_os
+      configuration.os || 'Ubuntu 14.04 LTS'
+    end
+
     # Default 1 days
     def max_instance_duration
       configuration.max_instance_duration || 86_400
