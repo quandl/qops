@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module Qops
-  VERSION = '1.4.6'.freeze
+  VERSION = '1.4.7'.freeze
 end

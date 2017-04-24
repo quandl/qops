@@ -17,7 +17,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
         stack_id: config.stack_id,
         layer_ids: [config.layer_id],
         instance_type: config.instance_type,
-        os: config.os,
+        os: config.opsworks_os,
         hostname: requested_hostname,
         subnet_id: config.subnet,
         auto_scaling_type: config.autoscale_type,
