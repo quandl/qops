@@ -1,3 +1,6 @@
+# 1.4.8
+* fixed empty online instances check
+
 # 0.9.2
 
 * Added options to select migrate database, but default migrate option is true.
