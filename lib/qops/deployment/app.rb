@@ -89,6 +89,12 @@ class Qops::Deploy < Thor
     )
   end
 
+  # Allow thor to exit on any failure
+  # and return status code 1
+  def self.exit_on_failure?
+    true
+  end
+
   private
 
   def custom_json
