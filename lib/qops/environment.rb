@@ -32,7 +32,7 @@ module Qops
     end
 
     def initialize
-      %w(deploy_type region stack_id app_name).each do |v|
+      %w[deploy_type region stack_id app_name].each do |v|
         fail "Please configure #{v} before continuing." unless option?(v)
       end
 
@@ -78,7 +78,7 @@ module Qops
     end
 
     def clean_commands_to_ignore
-      configuration.clean_commands_to_ignore.present? ? configuration.clean_commands_to_ignore : %w(update_custom_cookbooks update_agent configure shutdown)
+      configuration.clean_commands_to_ignore.present? ? configuration.clean_commands_to_ignore : %w[update_custom_cookbooks update_agent configure shutdown]
     end
 
     def file_name
