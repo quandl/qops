@@ -1,3 +1,6 @@
+# 1.4.9
+* fix issue where status 0 is return on certain errors
+
 # 1.4.8
 * fixed empty online instances check
 
