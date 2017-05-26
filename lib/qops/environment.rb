@@ -37,8 +37,8 @@ module Qops
       end
 
       begin
-        opsworks.config.credentials.access_key_id
-        opsworks.config.credentials.secret_access_key
+        opsworks.config.credentials.credentials
+        # opsworks.config.credentials.secret_access_key
       rescue => e
         raise "There may be a problem with your aws credentials. Please correct with `aws configure`. Error: #{e}"
       end
