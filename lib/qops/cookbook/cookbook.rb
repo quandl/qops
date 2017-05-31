@@ -132,8 +132,7 @@ class Qops::Cookbook < Thor
   def s3
     @s3 ||= Aws::S3::Client.new(
       region: 'us-east-1',
-      access_key_id: config.opsworks.config.credentials.access_key_id,
-      secret_access_key: config.opsworks.config.credentials.secret_access_key
+      credentials: config.opsworks.config.credentials.credentials
     )
   end
 

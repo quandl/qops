@@ -1,3 +1,6 @@
+# 1.4.10
+* swap deprecated credential methods access_key_id and secret_access_key
+
 # 1.4.9
 * fix issue where status 0 is return on certain errors
 
