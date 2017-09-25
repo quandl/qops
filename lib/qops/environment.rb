@@ -38,7 +38,7 @@ module Qops
 
       begin
         opsworks.config.credentials.credentials
-      rescue => e
+      rescue => e # rubocop:disable Lint/RescueWithoutErrorClass
         raise "There may be a problem with your aws credentials. Please correct with `aws configure`. Error: #{e}"
       end
     end

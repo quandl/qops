@@ -20,12 +20,8 @@ CyclomaticComplexity:
   Enabled: false
 ClassAndModuleChildren:
   Enabled: false
-Style/FileName:
-  Enabled: false
 Style/ClassAndModuleChildren:
   SupportedStyles: compact
-Style/AccessorMethodName:
-  Enabled: false
 Style/RaiseArgs:
   Enabled: false
 SignalException:
@@ -43,8 +39,6 @@ TrivialAccessors:
 Lint/RescueException:
   Enabled: false
 RedundantSelf:
-  Enabled: false
-Style/AlignParameters:
   Enabled: false
 Style/Lambda:
   Enabled: false
