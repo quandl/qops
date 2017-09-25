@@ -5,11 +5,7 @@ class Qops::Deploy < Thor
   def app
     initialize_run
 
-    instances = if config.deploy_type == 'staging'
-                  [retrieve_instance].compact
-                else
-                  retrieve_instances
-                end
+    instances = config.deploy_type == 'staging' ? [retrieve_instance].compact : retrieve_instances
     online_instances = instances.select { |instance| instance.status == 'online' }
 
     if online_instances.empty?
@@ -24,7 +20,9 @@ class Qops::Deploy < Thor
 
     base_deployment_params = {
       stack_id: config.stack_id,
-      command: { name: 'deploy' }
+      command: {
+        name: 'deploy'
+      }
     }
 
     if !config.application_id
@@ -38,7 +36,9 @@ class Qops::Deploy < Thor
       base_deployment_params[:custom_json] = custom_json.to_json
     end
 
-    manifest = { environment: config.deploy_type }
+    manifest = {
+      environment: config.deploy_type
+    }
 
     # Deploy the first instance with migration on
     first_instance = online_instances.first
@@ -70,9 +70,7 @@ class Qops::Deploy < Thor
     deployment_params = base_deployment_params.deep_dup
     run_opsworks_command(deployment_params)
 
-    online_instances.each do |instance|
-      tag_instance(instance)
-    end
+    online_instances.each { |instance| tag_instance(instance) }
 
     ping_slack(
       'Quandl::Slack::Release',
@@ -106,6 +104,8 @@ class Qops::Deploy < Thor
       application_name = config.opsworks.describe_apps(app_ids: [config.application_id]).apps.first.name
 
       @_custom_json[:deploy] = {
+        revision: revision_used,
+        # the following is to be deprecated in favor of the former...
         application_name => {
           scm: {
             revision: revision_used
