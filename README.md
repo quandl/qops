@@ -2,10 +2,10 @@
 
 ## Configuring Qops in your project
 
-1. In your repo's config directory create a file called opsworks.yml. See sample.
-2. Install gem `qops` to your system. Be sure to use gem install `qops`. Do not include it as part of the bundle of your repo as it is mean't to be run outside of the scope of your project.
-3. Run `qops list` to get a list of commands you can run.
-4. Run `qops help <command>` for more information on command argument options
+1.  In your repo's config directory create a file called opsworks.yml. See sample.
+2.  Install gem `qops` to your system. Be sure to use gem install `qops`. Do not include it as part of the bundle of your repo as it is mean't to be run outside of the scope of your project.
+3.  Run `qops list` to get a list of commands you can run.
+4.  Run `qops help <command>` for more information on command argument options
 
 ## FAQ:
 
@@ -25,7 +25,7 @@ You can use the custom json flag for this. Example:
 
 In this case the `wikiposit` is the opsworks app wikiposit. You will need to change this to whichever app you are deploying.
 
-See also: http://docs.aws.amazon.com/opsworks/latest/userguide/apps-environment-vars.html
+See also: <http://docs.aws.amazon.com/opsworks/latest/userguide/apps-environment-vars.html>
 
 ## Sample Config (with all options)
 

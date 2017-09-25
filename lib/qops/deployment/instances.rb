@@ -350,15 +350,15 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
 
     ping_slack(
       'Quandl::Slack::InstanceDown',
-        'Remove existing instance',
-        'success',
-        manifest.merge(
-          completed: Time.now,
-          hostname: instance.hostname,
-          instance_id: instance.instance_id,
-          private_ip: instance.private_ip,
-          public_ip: instance.public_ip
-        )
+      'Remove existing instance',
+      'success',
+      manifest.merge(
+        completed: Time.now,
+        hostname: instance.hostname,
+        instance_id: instance.instance_id,
+        private_ip: instance.private_ip,
+        public_ip: instance.public_ip
+      )
     )
   end
 end
