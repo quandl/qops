@@ -103,15 +103,17 @@ class Qops::Deploy < Thor
     if config.application_id
       application_name = config.opsworks.describe_apps(app_ids: [config.application_id]).apps.first.name
 
-      @_custom_json[:deploy] = {
-        revision: revision_used,
-        # the following is to be deprecated in favor of the former...
-        application_name => {
-          scm: {
-            revision: revision_used
-          }
-        }
-      }
+      @_custom_json[:deploy] = if config.chef_version >= 12.2
+                                 { revision: revision_used }
+                               else
+                                 {
+                                   application_name => {
+                                     scm: {
+                                       revision: revision_used
+                                     }
+                                   }
+                                 }
+                               end
     end
 
     if options[:custom_json].present?

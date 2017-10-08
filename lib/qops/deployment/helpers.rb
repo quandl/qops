@@ -7,15 +7,15 @@ module Qops::DeployHelpers
     class_option :custom_json, type: :string, aliases: '-j', desc: 'A custom json that will be used during a deployment of the app. ex: \'{ "custom_attrs": "are awesome!"}\''
     class_option :branch, type: :string, aliases: '-b', desc: 'The branch to use when deploying to staging type environments'
     class_option :hostname, type: :string, aliases: '-h', desc: 'Fully override the hostname that qops would normally give the instance'
+    class_option :profile, type: :string, aliases: '-p', desc: 'An AWS profile to use'
   end
 
   private
 
   def config
     return @_config if @_config
-
     Qops::Environment.notifiers
-    @_config ||= Qops::Environment.new
+    @_config ||= Qops::Environment.new(profile: options[:profile])
 
     fail "Invalid configure deploy_type detected: #{@_config.deploy_type}" unless %w[staging production].include?(@_config.deploy_type)
 
@@ -112,5 +112,17 @@ module Qops::DeployHelpers
     else
       'master'
     end
+  end
+
+  def show_stack(options = {})
+    stack = config.find_stack(options)
+    {
+      name: stack.name,
+      stack_id: stack.stack_id,
+      subnet: stack.default_subnet_id,
+      layers: config.layers(options).map { |layer| layer.to_h.slice(:name, :layer_id, :shortname) },
+      apps: config.apps(options).map { |app| app.to_h.slice(:name, :app_id) },
+      config_manager: stack.configuration_manager.to_h
+    }
   end
 end
