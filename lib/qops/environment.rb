@@ -1,5 +1,4 @@
 require 'quandl/config'
-require 'parseconfig'
 
 module Qops
   class Environment
