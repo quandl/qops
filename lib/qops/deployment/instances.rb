@@ -248,13 +248,6 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
     end
   end
 
-  desc 'describe', 'show basic stack info'
-  method_option :name, type: :string, aliases: '-n', desc: 'describe the stack with matching name'
-  def describe
-    initialize_run
-    puts JSON.pretty_generate(show_stack(name: options[:name]))
-  end
-
   private
 
   def setup_instance(instance, initial_instance_state, manifest)
