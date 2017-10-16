@@ -132,7 +132,7 @@ class Qops::Cookbook < Thor
   def s3
     @s3 ||= Aws::S3::Client.new(
       region: 'us-east-1',
-      credentials: config.opsworks.config.credentials.credentials
+      profile: options[:profile]
     )
   end
 

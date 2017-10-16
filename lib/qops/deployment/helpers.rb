@@ -122,7 +122,8 @@ module Qops::DeployHelpers
       subnet: stack.default_subnet_id,
       layers: config.layers(options).map { |layer| layer.to_h.slice(:name, :layer_id, :shortname) },
       apps: config.apps(options).map { |app| app.to_h.slice(:name, :app_id) },
-      config_manager: stack.configuration_manager.to_h
+      config_manager: stack.configuration_manager.to_h,
+      default_os: stack.default_os
     }
   end
 end

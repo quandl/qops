@@ -85,7 +85,7 @@ module Qops
     end
 
     def layer_id(options = {})
-      configuration.layer_id if configuration.layer_id
+      return configuration.layer_id if configuration.layer_id
       name = options[:layer_name] || configuration.layer_name
       layers.find { |layer| layer.name.casecmp(name) }.layer_id
     end
@@ -122,8 +122,9 @@ module Qops
       configuration.autoscale_type || nil
     end
 
-    def opsworks_os
-      configuration.os || 'Ubuntu 14.04 LTS'
+    def opsworks_os(options = {})
+      return configuration.os if configuration.os
+      find_stack(options).default_os
     end
 
     # Default 1 days
