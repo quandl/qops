@@ -31,15 +31,17 @@ module Qops
       end
     end
 
-    def initialize(profile: nil)
+    def initialize(profile: nil, force_config: false)
       @_aws_config = { region: configuration.region }
       @_aws_config[:profile] = profile unless profile.nil?
+      @_force_config = force_config
       puts Rainbow("using aws profile #{profile}").bg(:black).green unless profile.nil?
 
       %w[deploy_type region app_name].each do |v|
         fail "Please configure #{v} before continuing." unless option?(v)
       end
 
+      # if being forced to use config , then stack_id is a requirement
       fail 'Please configure stack_id or stack_name before continuing' unless option?('stack_id') || option?('stack_name')
 
       begin
@@ -60,7 +62,10 @@ module Qops
             elsif !options[:stack_id].nil?
               :stack_id
             else
-              identity_from_config
+              id = identity_from_config
+              msg = Rainbow("Using opsworks.yml config #{id}: #{configuration.send(id)}")
+              puts(msg.bg(:black).green)
+              id
             end
       value = options[key] || configuration.send(key)
       key = :name if key == :stack_name
@@ -73,11 +78,13 @@ module Qops
     end
 
     def stack_id(options = {})
-      configuration.stack_id || find_stack(options).stack_id
+      return configuration.stack_id if @_force_config
+      find_stack(options).stack_id
     end
 
     def subnet(options = {})
-      configuration.subnet || find_stack(options).default_subnet_id
+      return configuration.subnet if @_force_config
+      find_stack(options).default_subnet_id
     end
 
     def layers(options = {})
@@ -85,7 +92,7 @@ module Qops
     end
 
     def layer_id(options = {})
-      return configuration.layer_id if configuration.layer_id
+      return configuration.layer_id if @_force_config
       name = options[:layer_name] || configuration.layer_name
       layers.find { |layer| layer.name.casecmp(name) }.layer_id
     end
@@ -99,7 +106,8 @@ module Qops
     end
 
     def application_id(options = {})
-      configuration.application_id || apps(options).first.app_id
+      return configuration.application_id if @_force_config
+      apps(options).first.app_id
     end
 
     def deploy_type
@@ -123,7 +131,7 @@ module Qops
     end
 
     def opsworks_os(options = {})
-      return configuration.os if configuration.os
+      return configuration.os if @_force_config
       find_stack(options).default_os
     end
 

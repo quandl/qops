@@ -103,7 +103,7 @@ class Qops::Deploy < Thor
     if config.application_id
       application_name = config.opsworks.describe_apps(app_ids: [config.application_id]).apps.first.name
 
-      @_custom_json[:deploy] = if config.chef_version >= 12.2
+      @_custom_json[:deploy] = if config.chef_version >= 12
                                  { revision: revision_used }
                                else
                                  {

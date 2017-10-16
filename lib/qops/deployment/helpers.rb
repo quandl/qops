@@ -8,6 +8,7 @@ module Qops::DeployHelpers
     class_option :branch, type: :string, aliases: '-b', desc: 'The branch to use when deploying to staging type environments'
     class_option :hostname, type: :string, aliases: '-h', desc: 'Fully override the hostname that qops would normally give the instance'
     class_option :profile, type: :string, aliases: '-p', desc: 'An AWS profile to use'
+    class_option :force_config, type: :boolean, aliases: '-f', desc: 'force qops to read options from config. by default qops will search aws opsworks stack'
   end
 
   private
@@ -15,7 +16,7 @@ module Qops::DeployHelpers
   def config
     return @_config if @_config
     Qops::Environment.notifiers
-    @_config ||= Qops::Environment.new(profile: options[:profile])
+    @_config ||= Qops::Environment.new(profile: options[:profile], force_config: options[:force_config])
 
     fail "Invalid configure deploy_type detected: #{@_config.deploy_type}" unless %w[staging production].include?(@_config.deploy_type)
 

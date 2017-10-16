@@ -136,12 +136,7 @@ class Qops::Cookbook < Thor
   def aws_configs
     aws_config = { region: 'us-east-1' }
     # use the profile if found
-    if options[:profile]
-      aws_config[:profile] = options[:profile]
-    else
-      # default to credentials
-      aws_config[:credentials] = config.opsworks.config.credentials.credentials
-    end
+    options[:profile] ? aws_config[:profile] = options[:profile] : aws_config[:credentials] = config.opsworks.config.credentials.credentials
     aws_config
   end
 
