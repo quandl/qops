@@ -7,6 +7,4 @@ class Qops::Stack < Thor
     initialize_run
     puts JSON.pretty_generate(show_stack(name: options[:name]))
   end
-
-
 end

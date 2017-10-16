@@ -130,10 +130,19 @@ class Qops::Cookbook < Thor
   end
 
   def s3
-    @s3 ||= Aws::S3::Client.new(
-      region: 'us-east-1',
-      profile: options[:profile]
-    )
+    @s3 ||= Aws::S3::Client.new(**aws_configs)
+  end
+
+  def aws_configs
+    aws_config = { region: 'us-east-1' }
+    # use the profile if found
+    if options[:profile]
+      aws_config[:profile] = options[:profile]
+    else
+      # default to credentials
+      aws_config[:credentials] = config.opsworks.config.credentials.credentials
+    end
+    aws_config
   end
 
   def local_artifact_file
