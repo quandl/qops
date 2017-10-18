@@ -173,17 +173,16 @@ module Qops
     end
 
     def search_key(options = {})
-      key = if !options[:name].nil?
-              :name
-            elsif !options[:stack_id].nil?
-              :stack_id
-            else
-              id = identity_from_config
-              msg = Rainbow("Using opsworks.yml config #{id}: #{configuration.send(id)}")
-              puts(msg.bg(:black).green)
-              id
-            end
-      key
+      if !options[:name].nil?
+        :name
+      elsif !options[:stack_id].nil?
+        :stack_id
+      else
+        id = identity_from_config
+        msg = Rainbow("Using opsworks.yml config #{id}: #{configuration.send(id)}")
+        puts(msg.bg(:black).green)
+        id
+      end
     end
 
     def search_stack(key, value)
