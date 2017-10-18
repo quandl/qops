@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
 
   s.add_runtime_dependency 'qthor', '>= 0.19.1.4'
-  s.add_runtime_dependency 'aws-sdk', '>= 2.0.41'
+  s.add_runtime_dependency 'aws-sdk', '~> 3.0'
   s.add_runtime_dependency 'quandl-config', '>= 0.1.0'
   s.add_runtime_dependency 'quandl-slack'
   s.add_runtime_dependency 'activesupport', '>= 4.2.1'

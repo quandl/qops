@@ -16,6 +16,7 @@ require_relative 'qops/helpers'
 require_relative 'qops/deployment/helpers'
 require_relative 'qops/deployment/app'
 require_relative 'qops/deployment/instances'
+require_relative 'qops/deployment/stacks'
 require_relative 'qops/cookbook/cookbook'
 
 # Migrate this into quandl config project

@@ -103,8 +103,8 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
     # For Elasticsearch cluster, register with public elb
     if config.option?(:public_search_elb)
       print "Register instance #{instance.ec2_instance_id} to elb #{config.public_search_elb}"
-      elb.register_instances_with_load_balancer(load_balancer_name: config.public_search_elb.to_s,
-                                                instances: [{ instance_id: instance.ec2_instance_id.to_s }])
+      config.elb.register_instances_with_load_balancer(load_balancer_name: config.public_search_elb.to_s,
+                                                       instances: [{ instance_id: instance.ec2_instance_id.to_s }])
     end
 
     # Deploy the latest code to instance
@@ -250,13 +250,6 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
 
   private
 
-  def elb
-    @elb ||= Aws::ElasticLoadBalancing::Client.new(
-      region: 'us-east-1',
-      credentials: config.opsworks.config.credentials.credentials
-    )
-  end
-
   def setup_instance(instance, initial_instance_state, manifest)
     print 'Setup instance ...'
 
@@ -313,7 +306,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
 
     # For Elasticsearch cluster, remove from from public elb
     if config.option?(:public_search_elb)
-      elb.deregister_instances_from_load_balancer(
+      config.elb.deregister_instances_from_load_balancer(
         load_balancer_name: config.public_search_elb.to_s,
         instances: [{ instance_id: instance.ec2_instance_id.to_s }]
       )

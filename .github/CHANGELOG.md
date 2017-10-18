@@ -1,3 +1,8 @@
+# 1.6.0
+*  add in --profile arg to allow aws profile switching
+*  add in qops:instance:describe to stack metadata from aws
+*  update custom json to use old format if Chef version is <= 12.2
+
 # 1.5.0
 *   Update the format of the Custom JSON of a deployment with a new format for the SCM revision
 
