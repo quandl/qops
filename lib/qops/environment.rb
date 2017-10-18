@@ -73,7 +73,7 @@ module Qops
       stack(options).default_subnet_id
     end
 
-    def layers(options = {})
+    def layers(_options = {})
       opsworks.describe_layers(stack_id: stack_id).layers
     end
 
@@ -87,7 +87,7 @@ module Qops
       stack(options).configuration_manager.version.to_f
     end
 
-    def apps(options = {})
+    def apps(_options = {})
       opsworks.describe_apps(stack_id: stack_id).apps
     end
 
@@ -172,7 +172,7 @@ module Qops
       configuration.stack_id ? :stack_id : :stack_name
     end
 
-    def search_key(options={})
+    def search_key(options = {})
       key = if !options[:name].nil?
               :name
             elsif !options[:stack_id].nil?
