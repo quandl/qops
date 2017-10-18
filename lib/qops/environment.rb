@@ -41,6 +41,8 @@ module Qops
         fail "Please configure #{v} before continuing." unless option?(v)
       end
 
+      fail 'Please configure the layer_name if you are allowing qops to search aws stacks' unless option?('layer_name')
+
       # if being forced to use config , then stack_id is a requirement
       fail 'Please configure stack_id or stack_name before continuing' unless option?('stack_id') || option?('stack_name')
 
@@ -51,44 +53,28 @@ module Qops
       end
     end
 
-    def identity_from_config
-      configuration.stack_id ? :stack_id : :stack_name
-    end
-
-    def find_stack(options = {})
+    def stack(options = {})
       return @_stack if @_stack
-      key = if !options[:name].nil?
-              :name
-            elsif !options[:stack_id].nil?
-              :stack_id
-            else
-              id = identity_from_config
-              msg = Rainbow("Using opsworks.yml config #{id}: #{configuration.send(id)}")
-              puts(msg.bg(:black).green)
-              id
-            end
+      # find out if the config is using stack id or name
+      key = search_key(options)
       value = options[key] || configuration.send(key)
+      # aws uses the term 'name' to reference a stack name
       key = :name if key == :stack_name
-      stack = opsworks.describe_stacks.stacks.find { |s| s.send(key) == value }
-      unless stack
-        puts Rainbow("Could not find stack with #{key} = #{value}").bg(:black).red
-        exit(-1)
-      end
-      @_stack = stack
+      @_stack = search_stack(key, value)
     end
 
     def stack_id(options = {})
       return configuration.stack_id if @_force_config
-      find_stack(options).stack_id
+      stack(options).stack_id
     end
 
     def subnet(options = {})
       return configuration.subnet if @_force_config
-      find_stack(options).default_subnet_id
+      stack(options).default_subnet_id
     end
 
     def layers(options = {})
-      opsworks.describe_layers(stack_id: find_stack(options).stack_id).layers
+      opsworks.describe_layers(stack_id: stack_id).layers
     end
 
     def layer_id(options = {})
@@ -98,11 +84,11 @@ module Qops
     end
 
     def chef_version(options = {})
-      find_stack(options).configuration_manager.version.to_f
+      stack(options).configuration_manager.version.to_f
     end
 
     def apps(options = {})
-      opsworks.describe_apps(stack_id: find_stack(options).stack_id).apps
+      opsworks.describe_apps(stack_id: stack_id).apps
     end
 
     def application_id(options = {})
@@ -181,6 +167,33 @@ module Qops
     end
 
     private
+
+    def identity_from_config
+      configuration.stack_id ? :stack_id : :stack_name
+    end
+
+    def search_key(options={})
+      key = if !options[:name].nil?
+              :name
+            elsif !options[:stack_id].nil?
+              :stack_id
+            else
+              id = identity_from_config
+              msg = Rainbow("Using opsworks.yml config #{id}: #{configuration.send(id)}")
+              puts(msg.bg(:black).green)
+              id
+            end
+      key
+    end
+
+    def search_stack(key, value)
+      stack = opsworks.describe_stacks.stacks.find { |s| s.send(key) == value }
+      unless stack
+        puts Rainbow("Could not find stack with #{key} = #{value}").bg(:black).red
+        exit(-1)
+      end
+      stack
+    end
 
     def method_missing(method_sym, *arguments, &block) # rubocop:disable Style/MethodMissing
       if configuration.respond_to?(method_sym)

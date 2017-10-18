@@ -116,7 +116,7 @@ module Qops::DeployHelpers
   end
 
   def show_stack(options = {})
-    stack = config.find_stack(options)
+    stack = config.stack(options)
     {
       name: stack.name,
       stack_id: stack.stack_id,
