@@ -34,8 +34,8 @@ module Qops
     def initialize(profile: nil, force_config: false)
       @_aws_config = { region: configuration.region }
       @_aws_config[:profile] = profile unless profile.nil?
-      profile.nil? ? opsworks.config.credentials.credentials : @_aws_config[:profile] = profile
       @_force_config = force_config
+      profile.nil? ? opsworks.config.credentials.credentials : @_aws_config[:profile] = profile
       puts Rainbow("using aws profile #{profile}").bg(:black).green unless profile.nil?
       puts Rainbow('Forcing Qops to read the opsworks parameter strictly from yaml') if force_config
       %w[deploy_type region app_name].each do |v|
@@ -68,12 +68,11 @@ module Qops
       opsworks.describe_layers(stack_id: stack_id).layers
     end
 
-    def layer_id(options = {})
+    def layer_id(_options = {})
       return configuration.layer_id if @_force_config
       name = configuration.layer_name
       puts "searching for #{name}"
-      layer = layers.find { |layer| layer.name.downcase == name.downcase }
-      puts "found layer #{layer.name}"
+      layer = layers.find { |l| l.name.match(/#{name}/i) }
       layer.layer_id
     end
 

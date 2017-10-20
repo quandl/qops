@@ -1,3 +1,6 @@
+# 1.6.1
+* fix issue where qops is not allowing ec2 instance to assume a role
+
 # 1.6.0
 *  add in --profile arg to allow aws profile switching
 *  add in qops:instance:describe to stack metadata from aws
