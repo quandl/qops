@@ -41,8 +41,6 @@ module Qops
         fail "Please configure #{v} before continuing." unless option?(v)
       end
 
-      fail 'Please configure the layer_name if you are allowing qops to search aws stacks' unless option?('layer_name')
-
       # if being forced to use config , then stack_id is a requirement
       fail 'Please configure stack_id or stack_name before continuing' unless option?('stack_id') || option?('stack_name')
 
@@ -79,8 +77,11 @@ module Qops
 
     def layer_id(options = {})
       return configuration.layer_id if @_force_config
-      name = options[:layer_name] || configuration.layer_name
-      layers.find { |layer| layer.name.casecmp(name) }.layer_id
+      name = configuration.layer_name
+      puts "searching for #{name}"
+      layer = layers.find { |layer| layer.name.downcase == name.downcase }
+      puts "found layer #{layer.name}"
+      layer.layer_id
     end
 
     def chef_version(options = {})
@@ -118,7 +119,7 @@ module Qops
 
     def opsworks_os(options = {})
       return configuration.os if @_force_config
-      find_stack(options).default_os
+      stack(options).default_os
     end
 
     # Default 1 days
