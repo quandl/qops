@@ -35,22 +35,13 @@ module Qops
       @_aws_config = { region: configuration.region }
       @_aws_config[:profile] = profile unless profile.nil?
       @_force_config = force_config
+      profile.nil? ? opsworks.config.credentials.credentials : @_aws_config[:profile] = profile
       puts Rainbow("using aws profile #{profile}").bg(:black).green unless profile.nil?
-
+      puts Rainbow('Forcing Qops to read the opsworks parameter strictly from yaml') if force_config
       %w[deploy_type region app_name].each do |v|
         fail "Please configure #{v} before continuing." unless option?(v)
       end
-
-      fail 'Please configure the layer_name if you are allowing qops to search aws stacks' unless option?('layer_name')
-
-      # if being forced to use config , then stack_id is a requirement
       fail 'Please configure stack_id or stack_name before continuing' unless option?('stack_id') || option?('stack_name')
-
-      begin
-        opsworks.config.credentials.credentials unless profile
-      rescue => e # rubocop:disable Lint/RescueWithoutErrorClass
-        raise "There may be a problem with your aws credentials. Please correct with `aws configure`. Error: #{e}"
-      end
     end
 
     def stack(options = {})
@@ -77,10 +68,12 @@ module Qops
       opsworks.describe_layers(stack_id: stack_id).layers
     end
 
-    def layer_id(options = {})
+    def layer_id(_options = {})
       return configuration.layer_id if @_force_config
-      name = options[:layer_name] || configuration.layer_name
-      layers.find { |layer| layer.name.casecmp(name) }.layer_id
+      name = configuration.layer_name
+      puts "searching for #{name}"
+      layer = layers.find { |l| l.name.match(/#{name}/i) }
+      layer.layer_id
     end
 
     def chef_version(options = {})
@@ -118,7 +111,7 @@ module Qops
 
     def opsworks_os(options = {})
       return configuration.os if @_force_config
-      find_stack(options).default_os
+      stack(options).default_os
     end
 
     # Default 1 days
