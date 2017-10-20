@@ -43,12 +43,6 @@ module Qops
 
       # if being forced to use config , then stack_id is a requirement
       fail 'Please configure stack_id or stack_name before continuing' unless option?('stack_id') || option?('stack_name')
-
-      begin
-        opsworks.config.credentials.credentials unless profile
-      rescue => e # rubocop:disable Lint/RescueWithoutErrorClass
-        raise "There may be a problem with your aws credentials. Please correct with `aws configure`. Error: #{e}"
-      end
     end
 
     def stack(options = {})
