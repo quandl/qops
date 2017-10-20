@@ -34,14 +34,13 @@ module Qops
     def initialize(profile: nil, force_config: false)
       @_aws_config = { region: configuration.region }
       @_aws_config[:profile] = profile unless profile.nil?
+      profile.nil? ? opsworks.config.credentials.credentials : @_aws_config[:profile] = profile
       @_force_config = force_config
       puts Rainbow("using aws profile #{profile}").bg(:black).green unless profile.nil?
-
+      puts Rainbow('Forcing Qops to read the opsworks parameter strictly from yaml') if force_config
       %w[deploy_type region app_name].each do |v|
         fail "Please configure #{v} before continuing." unless option?(v)
       end
-
-      # if being forced to use config , then stack_id is a requirement
       fail 'Please configure stack_id or stack_name before continuing' unless option?('stack_id') || option?('stack_name')
     end
 
