@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Qops::Deploy < Thor
   include Qops::DeployHelpers
 
@@ -8,9 +10,7 @@ class Qops::Deploy < Thor
     instances = config.deploy_type == 'staging' ? [retrieve_instance].compact : retrieve_instances
     online_instances = instances.select { |instance| instance.status == 'online' }
 
-    if online_instances.empty?
-      raise 'Could not find any running instance(s) to deploy to. Perhaps you need to run "qops:instance:up" first'
-    end
+    raise 'Could not find any running instance(s) to deploy to. Perhaps you need to run "qops:instance:up" first' if online_instances.empty?
 
     if config.deploy_type == 'staging'
       puts "Preparing to deploy branch #{revision_used} to instance #{online_instances.first.hostname}"
@@ -32,9 +32,7 @@ class Qops::Deploy < Thor
       base_deployment_params[:app_id] = config.application_id
     end
 
-    if config.deploy_type != 'production'
-      base_deployment_params[:custom_json] = custom_json.to_json
-    end
+    base_deployment_params[:custom_json] = custom_json.to_json if config.deploy_type != 'production'
 
     manifest = {
       environment: config.deploy_type

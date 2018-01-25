@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
   include Qops::DeployHelpers
 
@@ -55,9 +57,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
 
     # Start the instance if necessary
     print 'Booting instance ...'
-    unless %w[online booting].include?(instance.status)
-      config.opsworks.start_instance(instance_id: instance_id)
-    end
+    config.opsworks.start_instance(instance_id: instance_id) unless %w[online booting].include?(instance.status)
 
     manifest = {
       environment: config.deploy_type,
@@ -144,9 +144,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
   def clean
     initialize_run
 
-    if config.deploy_type == 'production'
-      fail "Cannot clean instances in a #{config.deploy_type} environment"
-    end
+    fail "Cannot clean instances in a #{config.deploy_type} environment" if config.deploy_type == 'production'
 
     terminated_instances = []
 
@@ -297,9 +295,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
 
   def terminate_instance(instance_id)
     # Remove schedule if time based instance
-    if config.autoscale_type == 'timer'
-      config.opsworks.set_time_based_auto_scaling(instance_id: instance_id, auto_scaling_schedule: {})
-    end
+    config.opsworks.set_time_based_auto_scaling(instance_id: instance_id, auto_scaling_schedule: {}) if config.autoscale_type == 'timer'
 
     # Get the instance from the id
     instance = retrieve_instance(instance_id)
@@ -314,9 +310,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
 
     # Attempt to shutdown the instance
     print "Attempting instance #{instance_id} - #{instance.hostname} shutdown ..."
-    unless instance.status == 'stopped'
-      config.opsworks.stop_instance(instance_id: instance_id)
-    end
+    config.opsworks.stop_instance(instance_id: instance_id) unless instance.status == 'stopped'
 
     manifest = {
       environment: config.deploy_type,

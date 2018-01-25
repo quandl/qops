@@ -1,3 +1,9 @@
+# 1.7.0
+
+* fix issue where qops would not correctly use assumed role profiles
+* update the thor dependency from custom `qthor` to just be `thor`
+* add a new `-v` verbose flag
+
 # 1.6.1
 * fix issue where qops is not allowing ec2 instance to assume a role
 

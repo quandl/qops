@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'quandl/config'
 
 module Qops
@@ -26,17 +28,35 @@ module Qops
         puts Rainbow(message).bg(:black).red
       when :warning
         puts Rainbow(message).bg(:black).yellow
+      when :good
+        puts Rainbow(message).bg(:black).green
       else
         puts message
       end
     end
 
-    def initialize(profile: nil, force_config: false)
+    def initialize(profile: nil, force_config: false, verbose: false)
       @_aws_config = { region: configuration.region }
       @_aws_config[:profile] = profile unless profile.nil?
+
       @_force_config = force_config
-      profile.nil? ? opsworks.config.credentials.credentials : @_aws_config[:profile] = profile
-      puts Rainbow("using aws profile #{profile}").bg(:black).green unless profile.nil?
+      @_verbose = verbose
+
+      if profile.nil?
+        opsworks.config.credentials.credentials
+      else
+        parsed_creds = Aws.shared_config.instance_variable_get('@parsed_credentials')[profile]
+        role_credentials = Aws::AssumeRoleCredentials.new(
+          role_arn: parsed_creds['role_arn'],
+          role_session_name: profile
+        )
+        @_aws_config[:credentials] = role_credentials
+
+        puts Rainbow("Using AWS profile #{profile}").bg(:black).green
+      end
+
+      Aws.config.update(@_aws_config)
+
       puts Rainbow('Forcing Qops to read the opsworks parameter strictly from yaml') if force_config
       %w[deploy_type region app_name].each do |v|
         fail "Please configure #{v} before continuing." unless option?(v)
@@ -55,12 +75,12 @@ module Qops
     end
 
     def stack_id(options = {})
-      return configuration.stack_id if @_force_config
+      return configuration.stack_id if force_config?
       stack(options).stack_id
     end
 
     def subnet(options = {})
-      return configuration.subnet if @_force_config
+      return configuration.subnet if force_config?
       stack(options).default_subnet_id
     end
 
@@ -69,9 +89,9 @@ module Qops
     end
 
     def layer_id(_options = {})
-      return configuration.layer_id if @_force_config
+      return configuration.layer_id if force_config?
       name = configuration.layer_name
-      puts "searching for #{name}"
+      verbose_output("Searching for layer : #{name}")
       layer = layers.find { |l| l.name.match(/#{name}/i) }
       layer.layer_id
     end
@@ -85,7 +105,7 @@ module Qops
     end
 
     def application_id(options = {})
-      return configuration.application_id if @_force_config
+      return configuration.application_id if force_config?
       apps(options).first.app_id
     end
 
@@ -136,11 +156,23 @@ module Qops
     end
 
     def elb
-      @_elb_client ||= Aws::ElasticLoadBalancing::Client.new(region: 'us-east-1', profile: @_aws_config[:profile])
+      @_elb_client ||= Aws::ElasticLoadBalancing::Client.new(**@_aws_config)
     end
 
     def cookbook_json
       configuration.cookbook_json || 'custom.json'
+    end
+
+    def verbose?
+      @_verbose
+    end
+
+    def verbose_output(text)
+      self.class.print_with_colour(text, :warning) if verbose?
+    end
+
+    def force_config?
+      @_force_config
     end
 
     def option?(key)
@@ -172,18 +204,24 @@ module Qops
         :stack_id
       else
         id = identity_from_config
-        msg = Rainbow("Using opsworks.yml config #{id}: #{configuration.send(id)}")
-        puts(msg.bg(:black).green)
+        self.class.print_with_colour("Using opsworks.yml config #{id}: #{configuration.send(id)}", :good)
         id
       end
     end
 
     def search_stack(key, value)
-      stack = opsworks.describe_stacks.stacks.find { |s| s.send(key) == value }
+      verbose_output("Searching for stack : #{value}")
+
+      stack = opsworks.describe_stacks.stacks.find do |s|
+        verbose_output("Found stack: #{s.send(key)}")
+        s.send(key) == value
+      end
+
       unless stack
-        puts Rainbow("Could not find stack with #{key} = #{value}").bg(:black).red
+        self.class.print_with_colour("Could not find stack with #{key} = #{value}", :error)
         exit(-1)
       end
+
       stack
     end
 

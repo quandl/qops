@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Qops::Helpers
   extend ActiveSupport::Concern
 

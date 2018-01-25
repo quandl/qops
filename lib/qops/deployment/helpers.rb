@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Qops::DeployHelpers
   extend ActiveSupport::Concern
 
@@ -8,7 +10,8 @@ module Qops::DeployHelpers
     class_option :branch, type: :string, aliases: '-b', desc: 'The branch to use when deploying to staging type environments'
     class_option :hostname, type: :string, aliases: '-h', desc: 'Fully override the hostname that qops would normally give the instance'
     class_option :profile, type: :string, aliases: '-p', desc: 'An AWS profile to use'
-    class_option :force_config, type: :boolean, aliases: '-f', desc: 'force qops to read options from config. by default qops will search aws opsworks stack'
+    class_option :force_config, type: :boolean, aliases: '-f', desc: 'Force qops to read options from config. by default qops will search aws opsworks stack'
+    class_option :verbose, type: :boolean, aliases: '-v', desc: 'Provides additional information when running for debugging purposes.'
   end
 
   private
@@ -16,7 +19,7 @@ module Qops::DeployHelpers
   def config
     return @_config if @_config
     Qops::Environment.notifiers
-    @_config ||= Qops::Environment.new(profile: options[:profile], force_config: options[:force_config])
+    @_config ||= Qops::Environment.new(profile: options[:profile], force_config: options[:force_config], verbose: options[:verbose])
 
     fail "Invalid configure deploy_type detected: #{@_config.deploy_type}" unless %w[staging production].include?(@_config.deploy_type)
 
@@ -108,7 +111,7 @@ module Qops::DeployHelpers
     return 'master' unless config.deploy_type == 'staging'
     if options[:branch].present?
       options[:branch]
-    elsif `git --version` # rubocop:disable Lint/LiteralInCondition
+    elsif `git --version` # rubocop:disable Lint/LiteralAsCondition
       `git symbolic-ref --short HEAD`.strip
     else
       'master'

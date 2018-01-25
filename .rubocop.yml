@@ -8,6 +8,7 @@ AllCops:
     - !ruby/regexp /.*tddium.*\.rb$/
   DisplayCopNames: true
   DisplayStyleGuide: true
+  TargetRubyVersion: 2.5
 Encoding:
   Enabled: false
 LineLength:
@@ -49,4 +50,6 @@ BlockDelimiters:
 MultilineOperationIndentation:
   Enabled: false
 Security/YAMLLoad:
+  Enabled: false
+Gemspec/RequiredRubyVersion:
   Enabled: false
