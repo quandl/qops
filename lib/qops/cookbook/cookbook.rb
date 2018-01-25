@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Qops::Cookbook < Thor
   include Qops::Helpers
 

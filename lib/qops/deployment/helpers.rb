@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Qops::DeployHelpers
   extend ActiveSupport::Concern
 
@@ -109,7 +111,7 @@ module Qops::DeployHelpers
     return 'master' unless config.deploy_type == 'staging'
     if options[:branch].present?
       options[:branch]
-    elsif `git --version` # rubocop:disable Lint/LiteralInCondition
+    elsif `git --version` # rubocop:disable Lint/LiteralAsCondition
       `git symbolic-ref --short HEAD`.strip
     else
       'master'

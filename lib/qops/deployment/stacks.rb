@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Qops::Stack < Thor
   include Qops::DeployHelpers
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 $LOAD_PATH.push File.expand_path('../lib', __FILE__)
 
 # Maintain your gem's version:
@@ -22,10 +24,10 @@ Gem::Specification.new do |s|
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.require_paths = ['lib']
 
-  s.add_runtime_dependency 'thor', '>= 0.20.0'
+  s.add_runtime_dependency 'activesupport', '>= 4.2.1'
   s.add_runtime_dependency 'aws-sdk', '~> 3.0'
   s.add_runtime_dependency 'quandl-config', '>= 0.1.0'
   s.add_runtime_dependency 'quandl-slack'
-  s.add_runtime_dependency 'activesupport', '>= 4.2.1'
   s.add_runtime_dependency 'rainbow', '~> 2.0.0'
+  s.add_runtime_dependency 'thor', '>= 0.20.0'
 end
