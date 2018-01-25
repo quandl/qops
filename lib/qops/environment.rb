@@ -50,7 +50,6 @@ module Qops
           role_arn: parsed_creds['role_arn'],
           role_session_name: profile
         )
-        # Aws::OpsWorks::Client.new(credentials: role_credentials).describe_stacks.stacks.each { |s| puts s }
         @_aws_config[:credentials] = role_credentials
 
         puts Rainbow("Using AWS profile #{profile}").bg(:black).green
