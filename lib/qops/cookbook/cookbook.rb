@@ -15,6 +15,7 @@ class Qops::Cookbook < Thor
   desc 'package', 'Package the cookbooks into a zip file in vendor'
   def package
     initialize_run
+    move_custom_templates
     Dir.chdir(config.cookbook_dir) do
       remove_zip_files
       system("zip -r #{artifact_name} vendor/*")
@@ -156,6 +157,17 @@ class Qops::Cookbook < Thor
 
   def vendor_dir
     File.join(config.cookbook_dir, 'vendor')
+  end
+
+  def move_custom_templates
+    Dir.chdir(config.cookbook_dir) do
+      custom_template_directory = File.join('vendor', config.cookbook_name, 'overridden_built_in_templates')
+      if File.directory?(custom_template_directory)
+        say('Moving Custom Templates:', :green)
+        system("mv #{custom_template_directory}/* vendor")
+        system("rm -rf #{custom_template_directory}")
+      end
+    end
   end
 
   def remove_zip_files

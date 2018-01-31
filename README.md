@@ -9,6 +9,11 @@
 
 ## FAQ:
 
+### Q: Can I Override Built-In Templates
+
+You can create a overridden_built_in_templates folder within you cookbooks folder.
+/cookbooks/overridden_built_in_templates/unicorn/templates/default/unicorn.conf.erb
+
 ### Q: The `qops` gem is currently not public. How do I access it?
 
 Please add your personal gemfury source to the gem path to install it.
