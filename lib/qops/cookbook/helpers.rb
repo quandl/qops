@@ -28,5 +28,4 @@ module Qops::CookbookHelpers
 
     @_config
   end
-
 end

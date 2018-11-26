@@ -114,7 +114,7 @@ class Qops::Deploy < Thor
                                end
     end
 
-    if !options[:custom_json].nil?
+    unless options[:custom_json].nil?
       your_json = JSON.parse(options[:custom_json])
       @_custom_json.merge!(your_json)
       puts "Using custom json:\n#{JSON.pretty_generate(@_custom_json)}"

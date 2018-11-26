@@ -169,6 +169,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
       latest_command = Time.parse(instance.created_at)
       config.opsworks.describe_commands(instance_id: instance.instance_id).commands.each do |command|
         next if config.clean_commands_to_ignore.include?(command.type)
+
         completed_at = Time.parse(command.completed_at || command.acknowledged_at || command.created_at)
         latest_command = completed_at if completed_at > latest_command
       end
@@ -239,6 +240,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
                    ))
         puts 'Success'
         break if instance.instance_id == instances.last.instance_id
+
         delay = config.wait_deploy
         puts "wait for #{delay / 60.0} mintues"
         sleep delay

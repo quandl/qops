@@ -20,6 +20,7 @@ module Qops::DeployHelpers
 
   def config
     return @_config if @_config
+
     Qops::Environment.notifiers
     @_config ||= Qops::Environment.new(profile: options[:profile], force_config: options[:force_config], verbose: options[:verbose])
 
@@ -87,6 +88,7 @@ module Qops::DeployHelpers
 
   def requested_hostname
     return @requested_hostname if @requested_hostname
+
     if options[:hostname]
       @requested_hostname = options[:hostname]
       puts "NOTE: You have specified a custom hostname of #{@requested_hostname}. Be sure to continue to use this hostname for future commands to avoid problems."
@@ -98,7 +100,7 @@ module Qops::DeployHelpers
       elsif config.deploy_type == 'production'
         @requested_hostname = config.app_name
         existing_hostnames = retrieve_instances.map(&:hostname)
-        @requested_hostname += "-#{existing_hostnames.sort.last.to_s.split('-').last.to_i + 1}"
+        @requested_hostname += "-#{existing_hostnames.max.to_s.split('-').last.to_i + 1}"
       end
       @requested_hostname = config.hostname_prefix + @requested_hostname
     end
@@ -111,6 +113,7 @@ module Qops::DeployHelpers
 
   def revision_used
     return 'master' unless config.deploy_type == 'staging'
+
     if !options[:branch].nil?
       options[:branch]
     elsif `git --version` # rubocop:disable Lint/LiteralAsCondition

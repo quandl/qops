@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-$LOAD_PATH.push File.expand_path('../lib', __FILE__)
+$LOAD_PATH.push File.expand_path('lib', __dir__)
 
 # Maintain your gem's version:
 require 'qops/version'
@@ -25,9 +25,9 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
 
   s.add_runtime_dependency 'aws-sdk-ec2', '~> 1.59.0'
-  s.add_runtime_dependency 'aws-sdk-s3', '~> 1.26.0'
-  s.add_runtime_dependency 'aws-sdk-opsworks', '~> 1.9.0'
   s.add_runtime_dependency 'aws-sdk-elasticloadbalancing', '~> 1.8.0'
+  s.add_runtime_dependency 'aws-sdk-opsworks', '~> 1.9.0'
+  s.add_runtime_dependency 'aws-sdk-s3', '~> 1.26.0'
 
   s.add_runtime_dependency 'quandl-config', '>= 0.1.0'
   s.add_runtime_dependency 'quandl-slack'

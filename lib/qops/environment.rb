@@ -12,6 +12,7 @@ module Qops
 
     def self.notifiers
       return @_notifiers unless @_notifiers.nil?
+
       if File.exist?('config/quandl/slack.yml')
         @_notifiers ||= Quandl::Slack.autogenerate_notifiers
       else
@@ -66,6 +67,7 @@ module Qops
 
     def stack(options = {})
       return @_stack if @_stack
+
       # find out if the config is using stack id or name
       key = search_key(options)
       value = options[key] || configuration.send(key)
@@ -76,11 +78,13 @@ module Qops
 
     def stack_id(options = {})
       return configuration.stack_id if force_config?
+
       stack(options).stack_id
     end
 
     def subnet(options = {})
       return configuration.subnet if force_config?
+
       stack(options).default_subnet_id
     end
 
@@ -90,6 +94,7 @@ module Qops
 
     def layer_id(_options = {})
       return configuration.layer_id if force_config?
+
       name = configuration.layer_name
       verbose_output("Searching for layer : #{name}")
       layer = layers.find { |l| l.name.match(/#{name}/i) }
@@ -106,6 +111,7 @@ module Qops
 
     def application_id(options = {})
       return configuration.application_id if force_config?
+
       apps(options).first.app_id
     end
 
@@ -131,6 +137,7 @@ module Qops
 
     def opsworks_os(options = {})
       return configuration.os if @_force_config
+
       stack(options).default_os
     end
 
@@ -176,7 +183,7 @@ module Qops
     end
 
     def option?(key)
-      respond_to?(key.to_sym) || configuration.instance_variable_get(:@table).keys.include?(key.to_sym)
+      respond_to?(key.to_sym) || configuration.instance_variable_get(:@table).key?(key.to_sym)
     end
 
     def root_volume_size
@@ -225,7 +232,7 @@ module Qops
       stack
     end
 
-    def method_missing(method_sym, *arguments, &block) # rubocop:disable Style/MethodMissing
+    def method_missing(method_sym, *arguments, &block)
       if configuration.respond_to?(method_sym)
         configuration.send(method_sym, *arguments, &block)
       else

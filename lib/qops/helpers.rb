@@ -110,6 +110,7 @@ module Qops::Helpers
 
   def verify_opsworks_config
     return if File.exist?("config/#{Qops::Environment.file_name}.yml")
+
     raise "Could not find configuration file: config/#{Qops::Environment.file_name}.yml"
   end
 
@@ -127,9 +128,9 @@ module Qops::Helpers
       env = options[:environment]
 
       msg = 'Run command using config environment:'
-      msg = "Invalid config environment '#{env}'. Switch to:" if env && !configs.keys.include?(env)
+      msg = "Invalid config environment '#{env}'. Switch to:" if env && !configs.key?(env)
 
-      unless env && configs.keys.include?(env)
+      unless env && configs.key?(env)
         env = Thor::Shell::Color.new.ask(
           msg,
           :yellow,
