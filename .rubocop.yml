@@ -4,8 +4,6 @@ AllCops:
     - bin/*
     - config/boot.rb
     - rgloader/loader.rb
-    - !ruby/regexp /.*solano.*\.rb$/
-    - !ruby/regexp /.*tddium.*\.rb$/
   DisplayCopNames: true
   DisplayStyleGuide: true
   TargetRubyVersion: 2.5
