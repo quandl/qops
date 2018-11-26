@@ -232,7 +232,7 @@ module Qops
       stack
     end
 
-    def method_missing(method_sym, *arguments, &block)
+    def method_missing(method_sym, *arguments, &block) # rubocop:disable Style/MissingRespondToMissing
       if configuration.respond_to?(method_sym)
         configuration.send(method_sym, *arguments, &block)
       else

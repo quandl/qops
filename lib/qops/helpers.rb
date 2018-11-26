@@ -12,8 +12,8 @@ module Qops::Helpers
     Qops::Environment.notifiers
   end
 
-  def been_a_minute?(i)
-    i > 1 && (i % 60).zero?
+  def been_a_minute?(seconds)
+    seconds > 1 && (seconds % 60).zero?
   end
 
   def iterator(options)
@@ -86,9 +86,9 @@ module Qops::Helpers
     results.commands.each do |command|
       if command.log_url
         puts "\nReading last 100 lines from #{command.log_url}\n"
-        lines = open(command.log_url).read.split("\n")
+        lines = URI.parse(command.log_url).open.read.split("\n")
         num_lines = lines.count < config.command_log_lines ? lines.count : config.command_log_lines
-        puts open(command.log_url).read.split("\n")[-1 * num_lines..-1].join("\n")
+        puts lines[-1 * num_lines..-1].join("\n")
         puts "\nLog file at: #{command.log_url}"
       end
 
