@@ -111,7 +111,7 @@ module Qops::DeployHelpers
 
   def revision_used
     return 'master' unless config.deploy_type == 'staging'
-    if options[:branch].present?
+    if !options[:branch].nil?
       options[:branch]
     elsif `git --version` # rubocop:disable Lint/LiteralAsCondition
       `git symbolic-ref --short HEAD`.strip

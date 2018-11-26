@@ -95,7 +95,7 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
           hostname: instance.hostname,
           instance_id: instance.instance_id,
           private_ip: instance.private_ip,
-          public_ip: instance.public_ip.blank? ? 'N/A' : instance.public_ip
+          public_ip: instance.public_ip.nil? || instance.public_ip == '' ? 'N/A' : instance.public_ip
         )
       )
     end
