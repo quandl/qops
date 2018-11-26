@@ -1,17 +1,19 @@
 # frozen_string_literal: true
 
 module Qops::DeployHelpers
-  extend ActiveSupport::Concern
-
   include Qops::Helpers
 
-  included do
-    class_option :custom_json, type: :string, aliases: '-j', desc: 'A custom json that will be used during a deployment of the app. ex: \'{ "custom_attrs": "are awesome!"}\''
-    class_option :branch, type: :string, aliases: '-b', desc: 'The branch to use when deploying to staging type environments'
-    class_option :hostname, type: :string, aliases: '-h', desc: 'Fully override the hostname that qops would normally give the instance'
-    class_option :profile, type: :string, aliases: '-p', desc: 'An AWS profile to use'
-    class_option :force_config, type: :boolean, aliases: '-f', desc: 'Force qops to read options from config. by default qops will search aws opsworks stack'
-    class_option :verbose, type: :boolean, aliases: '-v', desc: 'Provides additional information when running for debugging purposes.'
+  def self.included(mod)
+    super
+    return unless mod.respond_to?(:class_option)
+
+    mod.class_option :environment, aliases: '-e', desc: 'The environment to use when running commands.'
+    mod.class_option :custom_json, type: :string, aliases: '-j', desc: 'A custom json that will be used during a deployment of the app. ex: \'{ "custom_attrs": "are awesome!"}\''
+    mod.class_option :branch, type: :string, aliases: '-b', desc: 'The branch to use when deploying to staging type environments'
+    mod.class_option :hostname, type: :string, aliases: '-h', desc: 'Fully override the hostname that qops would normally give the instance'
+    mod.class_option :profile, type: :string, aliases: '-p', desc: 'An AWS profile to use'
+    mod.class_option :force_config, type: :boolean, aliases: '-f', desc: 'Force qops to read options from config. by default qops will search aws opsworks stack'
+    mod.class_option :verbose, type: :boolean, aliases: '-v', desc: 'Provides additional information when running for debugging purposes.'
   end
 
   private

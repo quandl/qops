@@ -1,12 +1,6 @@
 # frozen_string_literal: true
 
 module Qops::Helpers
-  extend ActiveSupport::Concern
-
-  included do
-    class_option :environment, aliases: '-e', desc: 'The environment to use when running commands.'
-  end
-
   private
 
   def initialize_run
