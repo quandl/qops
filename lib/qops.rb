@@ -2,10 +2,14 @@
 
 require 'thor'
 require 'thor/group'
-require 'aws-sdk'
+
+require 'aws-sdk-opsworks'
+require 'aws-sdk-s3'
+require 'aws-sdk-ec2'
+require 'aws-sdk-elasticloadbalancing'
+
 require 'json'
 require 'fileutils'
-require 'active_support/all'
 require 'pp'
 require 'optparse'
 require 'erb'
@@ -25,12 +29,14 @@ require_relative 'qops/cookbook/cookbook'
 # Migrate this into quandl config project
 module Quandl
   class Config < ::OpenStruct
-    cattr_accessor :environment
+    class << self
+      attr_accessor :environment
+    end
 
     private
 
     def project_environment
-      @_environment ||= @@environment || (defined?(Rails) ? ::Rails.env : nil) || ENV['RAILS_ENV'] || ENV['RAKE_ENV'] || ENV['QUANDL_ENV'] || 'default'
+      @_environment ||= self.class.environment || (defined?(Rails) ? ::Rails.env : nil) || ENV['RAILS_ENV'] || ENV['RAKE_ENV'] || ENV['QUANDL_ENV'] || 'default'
     end
   end
 end
