@@ -192,44 +192,44 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
     initialize_run
     instances = retrieve_instances
 
-    puts "Preparing to run command to all servers (#{instances.map(&:hostname).join(', ')})"
+    command = options[:command_for_run_command] || ask('Which command you want to execute?', limited_to: %w[setup configure install_dependencies update_dependencies execute_recipes])
 
-    command = ask('Which command you want to execute?', limited_to: %w[setup configure install_dependencies update_dependencies execute_recipes])
+    option = options[:options_for_run_command] || ask('Which command you want to execute?', limited_to: %w[current all_in_once one_by_one])
 
-    option = ask('Which command you want to execute?', limited_to: %w[current all_in_once one_by_one])
+    puts "Preparing to run command to all servers (#{instances.map(&:hostname).join(', ')})" if option != 'current'
 
-    recipes = ask('Recipes list?') if command == 'execute_recipes'
+    recipes = options[:recipes] || ask('Recipes list?') if command == 'execute_recipes'
+
+    puts "#{command}#{option}#{recipes}"
 
     base_deployment_params = {
       stack_id: config.stack_id,
       command: {
-        name: command.to_s,
-        args: {
-          recipes: ['wikiposit::_rebuild_elasticsearch_index']
-        }
+        name: command.to_s
       }
     }
+
+    base_deployment_params[:command][:args] = { recipes: recipes.split(',') } if recipes
+
+    puts "#{base_deployment_params}"
 
     manifest = { environment: config.deploy_type }
 
     case option
     when 'current'
-      print "Run command #{command} on all instances at once ..."
+
+      instance = retrieve_instance if config.deploy_type == 'staging'
+
+      if instance.nil?
+        puts 'No instance available to execute_recipes'
+        exit(0)
+      else
+        instance_id = instance.instance_id
+      end
+
+      print "Run command #{command} on instance #{instance_id}"
       deployment_params = base_deployment_params.deep_dup
-      run_opsworks_command(deployment_params)
-      ping_slack(
-        'Quandl::Slack::Release',
-        "Run command: `#{command}` on all instances",
-        'success',
-        manifest.merge(
-          app_name: config.app_name,
-          command: 'deploy',
-          migrate: false,
-          completed: Time.now,
-          hostname: instances.map(&:hostname),
-          instance_id: instances.map(&:instance_id)
-        )
-      )
+      run_opsworks_command(base_deployment_params, [instance_id])
     when 'all_in_once'
       print "Run command #{command} on all instances at once ..."
       deployment_params = base_deployment_params.deep_dup
