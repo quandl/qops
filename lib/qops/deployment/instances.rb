@@ -200,8 +200,6 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
 
     recipes = options[:recipes] || ask('Recipes list?') if command == 'execute_recipes'
 
-    puts "#{command}#{option}#{recipes}"
-
     base_deployment_params = {
       stack_id: config.stack_id,
       command: {
