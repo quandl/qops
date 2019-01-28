@@ -194,18 +194,42 @@ class Qops::Instance < Thor # rubocop:disable Metrics/ClassLength
 
     puts "Preparing to run command to all servers (#{instances.map(&:hostname).join(', ')})"
 
-    command = ask('Which command you want to execute?', limited_to: %w[setup configure install_dependencies update_dependencies])
+    command = ask('Which command you want to execute?', limited_to: %w[setup configure install_dependencies update_dependencies execute_recipes])
 
-    option = ask('Which command you want to execute?', limited_to: %w[all_in_once one_by_one])
+    option = ask('Which command you want to execute?', limited_to: %w[current all_in_once one_by_one])
+
+    recipes = ask('Recipes list?') if command == 'execute_recipes'
 
     base_deployment_params = {
       stack_id: config.stack_id,
-      command: { name: command.to_s }
+      command: {
+        name: command.to_s,
+        args: {
+          recipes: ['wikiposit::_rebuild_elasticsearch_index']
+        }
+      }
     }
 
     manifest = { environment: config.deploy_type }
 
     case option
+    when 'current'
+      print "Run command #{command} on all instances at once ..."
+      deployment_params = base_deployment_params.deep_dup
+      run_opsworks_command(deployment_params)
+      ping_slack(
+        'Quandl::Slack::Release',
+        "Run command: `#{command}` on all instances",
+        'success',
+        manifest.merge(
+          app_name: config.app_name,
+          command: 'deploy',
+          migrate: false,
+          completed: Time.now,
+          hostname: instances.map(&:hostname),
+          instance_id: instances.map(&:instance_id)
+        )
+      )
     when 'all_in_once'
       print "Run command #{command} on all instances at once ..."
       deployment_params = base_deployment_params.deep_dup
