@@ -12,6 +12,9 @@ module Qops::DeployHelpers
     class_option :profile, type: :string, aliases: '-p', desc: 'An AWS profile to use'
     class_option :force_config, type: :boolean, aliases: '-f', desc: 'Force qops to read options from config. by default qops will search aws opsworks stack'
     class_option :verbose, type: :boolean, aliases: '-v', desc: 'Provides additional information when running for debugging purposes.'
+    class_option :command_for_run_command, type: :string, aliases: '-c', desc: 'The command to use when run_command'
+    class_option :recipes, type: :string, aliases: '-r', desc: 'The recipes to use when run_command execute_recipes'
+    class_option :options_for_run_command, type: :string, aliases: '-o', desc: 'options for run_command such as current, all_in_once or one_by_one'
   end
 
   private
