@@ -14,10 +14,6 @@
 You can create a overridden_built_in_templates folder within you cookbooks folder.
 /cookbooks/overridden_built_in_templates/unicorn/templates/default/unicorn.conf.erb
 
-### Q: The `qops` gem is currently not public. How do I access it?
-
-Please add your personal gemfury source to the gem path to install it.
-
 ### Q: For the `qops qops:instance:run_command` command, it provides two options: one is run commands against all instances of the stack all in once, one is run commands on each instances of the stack one by one randomly. How do I use this?
 
 When running commands one by one, between each execution of the command, there will be a delay. The delay is config by wait_deploy. By default it is 180 seconds when it is not defined. For now, run_command command will only support commends `setup` `configure` `install_dependencies` `update_dependencies`, `execute_recipes`, since commands `update_custom_cookbooks` `deploy` was implemented before.
