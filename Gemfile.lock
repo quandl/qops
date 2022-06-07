@@ -926,7 +926,7 @@ GEM
     concurrent-ruby (1.1.6)
     i18n (1.8.2)
       concurrent-ruby (~> 1.0)
-    jmespath (1.4.0)
+    jmespath (1.6.1)
     minitest (5.14.1)
     quandl-config (1.0.0)
       activesupport
